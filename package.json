@@ -1,14 +1,17 @@
-{
+﻿{
   "name": "wutong-mountain-backend",
-  "version": "1.0.0", 
-  "description": "Consciousness evolution backend API",
+  "version": "1.0.0",
+  "description": "Consciousness evolution backend API for WuTong Mountain dual-reality game",
   "main": "src/server.js",
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "build": "echo 'Build complete'",
-    "deploy": "railway deploy"
+    "build": "echo 'Build complete - static files served from public/'",
+    "deploy": "railway deploy",
+    "test": "echo 'Tests not implemented yet'",
+    "health": "curl http://localhost:3000/health",
+    "logs": "railway logs"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -26,6 +29,38 @@
     "nodemon": "^3.0.2"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "keywords": [
+    "consciousness",
+    "evolution",
+    "gaming",
+    "choose-your-own-adventure",
+    "spiritual-practice",
+    "ai-powered",
+    "dual-reality",
+    "trauma-healing",
+    "service-learning",
+    "progressive-web-app"
+  ],
+  "author": "WuTong Mountain Consciousness Evolution Project",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/wutong-mountain-game.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/wutong-mountain-game/issues"
+  },
+  "homepage": "https://wutong-mountain-production.up.railway.app",
+  "config": {
+    "port": 3000
+  },
+  "nodemonConfig": {
+    "watch": ["src"],
+    "ext": "js,json",
+    "ignore": ["node_modules", "public"],
+    "exec": "node src/server.js"
   }
 }
