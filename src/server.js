@@ -1,4 +1,4 @@
-// WuTong Mountain Backend Server - Complete API Implementation
+// WuTong Mountain Backend Server - Complete Fixed Implementation
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -46,15 +46,15 @@ async function initializeDatabases() {
             console.log('✅ Redis connected');
         }
     } catch (error) {
-        console.log('⚠️ Database initializing...', error.message);
+        console.log(⚠️ Database initializing...', error.message);
     }
 }
 
-// Create database tables
+// Create database tables - FIXED SCHEMA
 async function createTables() {
     const client = await dbPool.connect();
     try {
-        // Players table - core consciousness evolution data
+        // Players table - core consciousness evolution data - FIXED
         await client.query(`
             CREATE TABLE IF NOT EXISTS players (
                 id SERIAL PRIMARY KEY,
@@ -82,7 +82,7 @@ async function createTables() {
                 players_helped INTEGER DEFAULT 0,
                 success_rate DECIMAL(3,2) DEFAULT 0.00,
                 
-                -- Metadata
+                -- Metadata - FIXED: Added sessions_count
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 total_play_time INTEGER DEFAULT 0,
@@ -200,7 +200,7 @@ function normalizePassphrase(passphrase) {
     return passphrase.toLowerCase().replace(/\s+/g, '-');
 }
 
-// Create new consciousness journey - THE MISSING ENDPOINT!
+// Create new consciousness journey
 app.post('/api/player/new', async (req, res) => {
     try {
         const passphrase = generatePassphrase();
@@ -259,7 +259,7 @@ app.post('/api/player/new', async (req, res) => {
     }
 });
 
-// Load existing consciousness journey - THE MISSING ENDPOINT!
+// Load existing consciousness journey - FIXED sessions_count
 app.get('/api/player/:passphrase', async (req, res) => {
     try {
         const { passphrase } = req.params;
@@ -285,11 +285,11 @@ app.get('/api/player/:passphrase', async (req, res) => {
                 if (result.rows.length > 0) {
                     const dbPlayer = result.rows[0];
                     
-                    // Update last active
+                    // Update last active and sessions_count - FIXED
                     await dbPool.query(`
                         UPDATE players SET 
                             last_active = CURRENT_TIMESTAMP,
-                            sessions_count = sessions_count + 1
+                            sessions_count = COALESCE(sessions_count, 0) + 1
                         WHERE passphrase = $1
                     `, [normalizedPassphrase]);
 
@@ -353,20 +353,31 @@ app.get('/api/player/:passphrase', async (req, res) => {
     }
 });
 
-// Switch between realities - THE MISSING ENDPOINT!
+// Switch between realities - FIXED to handle multiple field names
 app.post('/api/reality/switch', async (req, res) => {
     try {
-        const { passphrase, newReality } = req.body;
+        const { passphrase, newReality, target_reality } = req.body;
+        const realityToSwitch = newReality || target_reality;
         
-        if (!passphrase || !newReality) {
+        if (!passphrase || !realityToSwitch) {
             return res.status(400).json({
                 success: false,
-                error: 'Missing passphrase or reality'
+                error: 'Missing passphrase or reality',
+                message: 'Both passphrase and target reality are required'
             });
         }
 
         const normalizedPassphrase = normalizePassphrase(passphrase);
         
+        // Validate reality
+        if (!['wutong', 'wokemound'].includes(realityToSwitch)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid reality',
+                message: 'Reality must be either "wutong" or "wokemound"'
+            });
+        }
+
         // Update player's reality in database
         if (dbPool) {
             try {
@@ -375,7 +386,9 @@ app.post('/api/reality/switch', async (req, res) => {
                         current_reality = $1,
                         last_active = CURRENT_TIMESTAMP
                     WHERE passphrase = $2
-                `, [newReality, normalizedPassphrase]);
+                `, [realityToSwitch, normalizedPassphrase]);
+                
+                console.log(`✅ Reality switched to ${realityToSwitch} for ${normalizedPassphrase}`);
             } catch (dbError) {
                 console.log('⚠️ Database update error:', dbError.message);
             }
@@ -383,8 +396,8 @@ app.post('/api/reality/switch', async (req, res) => {
 
         res.json({
             success: true,
-            newReality: newReality,
-            message: `Consciousness shifted to ${newReality === 'wutong' ? 'WuTong Mountain (Utopia)' : 'WokeMound (Horror)'}`
+            newReality: realityToSwitch,
+            message: `Consciousness shifted to ${realityToSwitch === 'wutong' ? 'WuTong Mountain (Utopia)' : 'WokeMound (Horror)'}`
         });
 
     } catch (error) {
@@ -394,6 +407,95 @@ app.post('/api/reality/switch', async (req, res) => {
             error: 'Failed to switch realities',
             message: 'Reality is fluid, try again'
         });
+    }
+});
+
+// Story generation endpoint (placeholder for future Claude integration)
+app.post('/api/story/generate', async (req, res) => {
+    try {
+        const { passphrase, previous_choice } = req.body;
+        
+        // TODO: Integrate with Claude API for dynamic story generation
+        res.json({
+            success: true,
+            message: 'Story generation endpoint ready for Claude integration',
+            story: {
+                location: "Development Zone",
+                context: "Story generation coming soon",
+                text: "This endpoint will connect to Claude API to generate dynamic, consciousness-evolution focused stories based on player choices and current reality."
+            },
+            choices: [
+                {
+                    text: "Prepare for Claude integration",
+                    mechanics: "INSIGHT + PRESENCE",
+                    type: "development"
+                }
+            ]
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Choice processing endpoint (placeholder for future development)
+app.post('/api/choice/process', async (req, res) => {
+    try {
+        const { passphrase, choice } = req.body;
+        
+        // Basic choice processing logic
+        const statsChanged = {};
+        let spiralPoints = 0;
+
+        // Process mechanics
+        const mechanics = choice.mechanics || '';
+        if (mechanics.includes('INSIGHT')) statsChanged.insight = Math.floor(Math.random() * 5) + 3;
+        if (mechanics.includes('PRESENCE')) statsChanged.presence = Math.floor(Math.random() * 5) + 3;
+        if (mechanics.includes('RESOLVE')) statsChanged.resolve = Math.floor(Math.random() * 5) + 3;
+        if (mechanics.includes('VIGOR')) statsChanged.vigor = Math.floor(Math.random() * 5) + 3;
+        if (mechanics.includes('HARMONY')) statsChanged.harmony = Math.floor(Math.random() * 5) + 3;
+
+        // Spiral points based on choice type
+        if (choice.type === 'service') spiralPoints = Math.floor(Math.random() * 20) + 15;
+        else if (choice.type === 'community') spiralPoints = Math.floor(Math.random() * 15) + 10;
+        else spiralPoints = Math.floor(Math.random() * 10) + 5;
+
+        // Update database if available
+        if (dbPool && Object.keys(statsChanged).length > 0) {
+            try {
+                const updateFields = Object.keys(statsChanged).map((key, index) => 
+                    `${key} = LEAST(100, GREATEST(0, ${key} + $${index + 2}))`
+                ).join(', ');
+                
+                const values = [normalizePassphrase(passphrase), ...Object.values(statsChanged)];
+                
+                if (spiralPoints > 0) {
+                    await dbPool.query(`
+                        UPDATE players SET 
+                            ${updateFields},
+                            spiral_points = spiral_points + $${values.length + 1}
+                        WHERE passphrase = $1
+                    `, [...values, spiralPoints]);
+                } else {
+                    await dbPool.query(`
+                        UPDATE players SET ${updateFields}
+                        WHERE passphrase = $1
+                    `, values);
+                }
+            } catch (dbError) {
+                console.log('⚠️ Stats update error:', dbError.message);
+            }
+        }
+
+        res.json({
+            success: true,
+            result: {
+                statsChanged: statsChanged,
+                spiralPoints: spiralPoints,
+                outcome: "Choice processed successfully"
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
@@ -408,21 +510,6 @@ app.get('/api/player/:passphrase/stats', async (req, res) => {
             success: true,
             message: 'Player statistics endpoint - coming soon!',
             stats: { placeholder: true }
-        });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// Submit choice or action
-app.post('/api/choice', async (req, res) => {
-    try {
-        const { passphrase, choice, reality, location } = req.body;
-        // Implementation coming soon
-        res.json({
-            success: true,
-            message: 'Choice processing endpoint - coming soon!',
-            result: { placeholder: true }
         });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
