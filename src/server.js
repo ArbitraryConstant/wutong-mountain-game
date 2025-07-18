@@ -353,6 +353,50 @@ app.get('/api/player/:passphrase', async (req, res) => {
     }
 });
 
+// Switch between realities - THE MISSING ENDPOINT!
+app.post('/api/reality/switch', async (req, res) => {
+    try {
+        const { passphrase, newReality } = req.body;
+        
+        if (!passphrase || !newReality) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing passphrase or reality'
+            });
+        }
+
+        const normalizedPassphrase = normalizePassphrase(passphrase);
+        
+        // Update player's reality in database
+        if (dbPool) {
+            try {
+                await dbPool.query(`
+                    UPDATE players SET 
+                        current_reality = $1,
+                        last_active = CURRENT_TIMESTAMP
+                    WHERE passphrase = $2
+                `, [newReality, normalizedPassphrase]);
+            } catch (dbError) {
+                console.log('⚠️ Database update error:', dbError.message);
+            }
+        }
+
+        res.json({
+            success: true,
+            newReality: newReality,
+            message: `Consciousness shifted to ${newReality === 'wutong' ? 'WuTong Mountain (Utopia)' : 'WokeMound (Horror)'}`
+        });
+
+    } catch (error) {
+        console.error('Reality switch error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to switch realities',
+            message: 'Reality is fluid, try again'
+        });
+    }
+});
+
 // Additional API endpoints for future development
 
 // Get player statistics
