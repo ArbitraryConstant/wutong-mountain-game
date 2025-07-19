@@ -1,352 +1,383 @@
-﻿// WuTong Mountain Backend Server - Complete Fixed Implementation
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import compression from 'compression';
-import morgan from 'morgan';
-import pkg from 'pg';
-import { createClient } from 'redis';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const { Pool } = pkg;
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+﻿// Updated server.js with Claude API Integration
+const express = require('express');
+const cors = require('cors');
+const rateLimit = require('express-rate-limit');
+const { Pool } = require('pg');
+const Redis = require('redis');
+const GameOrchestrator = require('./services/gameOrchestrator');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Database connections
-let dbPool = null;
-let redisClient = null;
+// Middleware
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || '*',
+    credentials: true
+}));
 
-// Initialize database connections
-async function initializeDatabases() {
+app.use(express.json({ limit: '10mb' }));
+app.use(express.static('public'));
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: { error: 'Too many requests, please try again later.' }
+});
+app.use('/api/', limiter);
+
+// Claude API specific rate limiting
+const claudeLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 10, // 10 Claude API calls per minute
+    message: { error: 'Claude API rate limit exceeded. Please wait a moment.' }
+});
+
+// Database connection
+let dbPool;
+let redisClient;
+let gameOrchestrator;
+
+async function initializeConnections() {
     try {
-        // PostgreSQL connection
+        // PostgreSQL
         if (process.env.DATABASE_URL) {
             dbPool = new Pool({
                 connectionString: process.env.DATABASE_URL,
-                ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-                max: 10,
-                idleTimeoutMillis: 30000,
-                connectionTimeoutMillis: 2000,
+                ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
             });
-
-            // Test connection and create tables
-            await createTables();
-            console.log('✅ PostgreSQL connected and tables ready');
+            
+            await dbPool.query('SELECT NOW()');
+            console.log('✅ PostgreSQL connected');
         }
 
-        // Redis connection (optional)
-        if (process.env.REDIS_URL && process.env.REDIS_URL.trim()) {
-            redisClient = createClient({ url: process.env.REDIS_URL });
-            redisClient.on('error', (err) => console.log('Redis Error:', err));
+        // Redis (optional)
+        if (process.env.REDIS_URL) {
+            redisClient = Redis.createClient({ url: process.env.REDIS_URL });
             await redisClient.connect();
             console.log('✅ Redis connected');
         }
-    } catch (error) {
-        console.log('⚠️ Database initializing...', error.message);
-    }
-}
 
-// Create database tables with migration
-async function createTables() {
-    const client = await dbPool.connect();
-    try {
-        // Players table - core consciousness evolution data
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS players (
-                id SERIAL PRIMARY KEY,
-                passphrase VARCHAR(100) UNIQUE NOT NULL,
-                consciousness_level INTEGER DEFAULT 0,
-                spiral_points INTEGER DEFAULT 0,
-                current_reality VARCHAR(20) DEFAULT 'wutong',
-                current_location VARCHAR(100) DEFAULT 'arrival-point',
-                insight INTEGER DEFAULT 35,
-                presence INTEGER DEFAULT 35,
-                resolve INTEGER DEFAULT 35,
-                vigor INTEGER DEFAULT 35,
-                harmony INTEGER DEFAULT 35,
-                service_actions INTEGER DEFAULT 0,
-                trauma_healing_actions INTEGER DEFAULT 0,
-                collaborative_actions INTEGER DEFAULT 0,
-                choices_created INTEGER DEFAULT 0,
-                choices_adopted INTEGER DEFAULT 0,
-                players_helped INTEGER DEFAULT 0,
-                success_rate DECIMAL(3,2) DEFAULT 0.00,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                total_play_time INTEGER DEFAULT 0,
-                sessions_count INTEGER DEFAULT 0
-            )
-        `);
-
-        // Add missing columns if they don't exist (migration)
-        await client.query(`
-            ALTER TABLE players 
-            ADD COLUMN IF NOT EXISTS sessions_count INTEGER DEFAULT 0
-        `);
-
-        console.log('✅ Database tables created/verified and migrated');
-    } finally {
-        client.release();
-    }
-}
-
-// Middleware setup
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
-            scriptSrcAttr: ["'unsafe-inline'"],
-            imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'", "https://api.anthropic.com"],
-            fontSrc: ["'self'", "https://fonts.googleapis.com", "https://fonts.gstatic.com"]
+        // Initialize Game Orchestrator with Claude API
+        if (process.env.CLAUDE_API_KEY) {
+            gameOrchestrator = new GameOrchestrator(dbPool, redisClient, process.env.CLAUDE_API_KEY);
+            console.log('✅ Claude API integrated');
+        } else {
+            console.log('⚠️ Claude API key not configured');
         }
-    },
-    crossOriginEmbedderPolicy: false
-}));
 
-app.use(compression());
-app.use(morgan('combined'));
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*', credentials: true }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+    } catch (error) {
+        console.error('Connection initialization failed:', error);
+    }
+}
 
-// Serve static files
-app.use(express.static(join(__dirname, '../public')));
+// =============================================================================
+// API ENDPOINTS WITH CLAUDE INTEGRATION
+// =============================================================================
 
-// Health check endpoint
+// Health check
 app.get('/health', (req, res) => {
     res.json({
         status: 'healthy',
-        message: '🏔️ WuTong Mountain consciousness evolution system is running!',
         timestamp: new Date().toISOString(),
-        database: {
-            postgresql: dbPool ? 'connected' : 'not configured',
-            redis: redisClient ? 'connected' : 'not configured'
+        services: {
+            database: dbPool ? 'connected' : 'disconnected',
+            redis: redisClient ? 'connected' : 'disconnected',
+            claude: process.env.CLAUDE_API_KEY ? 'configured' : 'not configured'
         }
     });
 });
 
-// Generate consciousness evolution passphrase
-function generatePassphrase() {
-    const adjectives = [
-        'quiet', 'silver', 'golden', 'crimson', 'azure', 'violet', 'emerald',
-        'wise', 'gentle', 'radiant', 'serene', 'mystic', 'flowing', 'dancing',
-        'luminous', 'peaceful', 'sacred', 'eternal', 'cosmic', 'stellar'
-    ];
-
-    const nouns = [
-        'moon', 'star', 'wind', 'river', 'mountain', 'ocean', 'forest',
-        'crystal', 'harmony', 'spirit', 'dawn', 'light', 'phoenix', 'dragon',
-        'lotus', 'sage', 'oracle', 'wanderer', 'temple', 'bridge'
-    ];
-
-    const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-    const noun = nouns[Math.floor(Math.random() * nouns.length)];
-    return `${adjective}-${noun}`;
-}
-
-// Validate and normalize passphrase
-function isValidPassphrase(passphrase) {
-    return /^[a-z]+-[a-z]+$/.test(passphrase);
-}
-
-function normalizePassphrase(passphrase) {
-    return passphrase.toLowerCase().replace(/\s+/g, '-');
-}
-
-// Create new consciousness journey
+// Create new player journey
 app.post('/api/player/new', async (req, res) => {
     try {
-        const passphrase = generatePassphrase();
-        let player = {
-            passphrase: passphrase,
-            consciousness_level: 0,
-            spiral_points: 0,
-            current_reality: 'wutong',
-            current_location: 'arrival-point',
-            stats: { insight: 35, presence: 35, resolve: 35, vigor: 35, harmony: 35 }
-        };
-
-        if (dbPool) {
-            try {
-                await dbPool.query(`
-                    INSERT INTO players (
-                        passphrase, consciousness_level, spiral_points,
-                        current_reality, current_location,
-                        insight, presence, resolve, vigor, harmony
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-                `, [passphrase, 0, 0, 'wutong', 'arrival-point', 35, 35, 35, 35, 35]);
-                console.log('✅ New consciousness journey created:', passphrase);
-            } catch (dbError) {
-                console.log('⚠️ Database not ready, using memory:', dbError.message);
-            }
+        if (!dbPool) {
+            return res.status(500).json({
+                success: false,
+                error: 'Database not available'
+            });
         }
+
+        const passphrase = req.body.passphrase || `consciousness-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        const result = await dbPool.query(
+            `INSERT INTO players (
+                passphrase, current_reality, insight, presence, resolve, vigor, harmony,
+                spiral_points, sessions_count, created_at, last_active
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+            RETURNING *`,
+            [passphrase, 'wutong', 25, 25, 25, 25, 25, 0, 1]
+        );
 
         res.json({
             success: true,
             passphrase: passphrase,
-            message: `Welcome to WuTong Mountain! Your consciousness journey begins.`,
-            player: player
+            message: 'Consciousness evolution journey initiated',
+            player: result.rows[0]
         });
+
     } catch (error) {
         console.error('Player creation error:', error);
         res.status(500).json({
             success: false,
-            error: 'Failed to create consciousness journey'
+            error: 'Failed to initiate consciousness journey'
         });
     }
 });
 
-// Load existing consciousness journey
+// Get player data
 app.get('/api/player/:passphrase', async (req, res) => {
     try {
         const { passphrase } = req.params;
-        const normalizedPassphrase = normalizePassphrase(passphrase);
-
-        if (!isValidPassphrase(normalizedPassphrase)) {
-            return res.status(400).json({
+        
+        if (!dbPool) {
+            return res.status(500).json({
                 success: false,
-                error: 'Invalid passphrase format'
+                error: 'Database not available'
             });
         }
 
-        let player = null;
+        const result = await dbPool.query(
+            'SELECT * FROM players WHERE passphrase = $1',
+            [passphrase]
+        );
 
-        if (dbPool) {
-            try {
-                const result = await dbPool.query(`
-                    SELECT * FROM players WHERE passphrase = $1
-                `, [normalizedPassphrase]);
-
-                if (result.rows.length > 0) {
-                    const dbPlayer = result.rows[0];
-                    await dbPool.query(`
-                        UPDATE players SET
-                            last_active = CURRENT_TIMESTAMP,
-                            sessions_count = COALESCE(sessions_count, 0) + 1
-                        WHERE passphrase = $1
-                    `, [normalizedPassphrase]);
-
-                    player = {
-                        passphrase: dbPlayer.passphrase,
-                        consciousness_level: dbPlayer.consciousness_level,
-                        spiral_points: dbPlayer.spiral_points,
-                        current_reality: dbPlayer.current_reality,
-                        current_location: dbPlayer.current_location,
-                        stats: {
-                            insight: dbPlayer.insight,
-                            presence: dbPlayer.presence,
-                            resolve: dbPlayer.resolve,
-                            vigor: dbPlayer.vigor,
-                            harmony: dbPlayer.harmony
-                        }
-                    };
-                }
-            } catch (dbError) {
-                console.log('⚠️ Database query error:', dbError.message);
-            }
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Consciousness journey not found'
+            });
         }
 
-        if (!player) {
-            player = {
-                passphrase: normalizedPassphrase,
-                consciousness_level: 1,
-                spiral_points: 50,
-                current_reality: 'wutong',
-                current_location: 'meditation-gardens',
-                stats: { insight: 45, presence: 40, resolve: 35, vigor: 50, harmony: 55 }
-            };
-        }
+        const player = result.rows[0];
+        const consciousnessLevel = gameOrchestrator ? 
+            gameOrchestrator.calculateConsciousnessLevel(player.spiral_points) : 1;
+        const convergenceStage = gameOrchestrator ?
+            gameOrchestrator.calculateConvergenceStage(player.spiral_points) : 1;
 
         res.json({
             success: true,
             player: player,
-            message: `Welcome back to your consciousness evolution journey!`
+            consciousness_level: consciousnessLevel,
+            convergence_stage: convergenceStage
         });
+
     } catch (error) {
-        console.error('Player load error:', error);
+        console.error('Player retrieval error:', error);
         res.status(500).json({
             success: false,
-            error: 'Failed to load consciousness journey'
+            error: 'Failed to retrieve consciousness data'
         });
     }
 });
 
-// Switch between realities
-app.post('/api/reality/switch', async (req, res) => {
+// Generate story content with Claude
+app.post('/api/story/generate', claudeLimiter, async (req, res) => {
     try {
-        const { passphrase, newReality, target_reality } = req.body;
-        const realityToSwitch = newReality || target_reality;
+        const { passphrase, reality } = req.body;
 
-        if (!passphrase || !realityToSwitch) {
-            return res.status(400).json({
+        if (!gameOrchestrator) {
+            return res.status(500).json({
                 success: false,
-                error: 'Missing passphrase or reality'
+                error: 'Claude API not available'
             });
         }
 
-        const normalizedPassphrase = normalizePassphrase(passphrase);
-
-        if (!['wutong', 'wokemound'].includes(realityToSwitch)) {
+        if (!passphrase || !reality) {
             return res.status(400).json({
                 success: false,
-                error: 'Invalid reality'
+                error: 'Passphrase and reality required'
             });
         }
 
-        if (dbPool) {
-            try {
-                await dbPool.query(`
-                    UPDATE players SET
-                        current_reality = $1,
-                        last_active = CURRENT_TIMESTAMP
-                    WHERE passphrase = $2
-                `, [realityToSwitch, normalizedPassphrase]);
-                console.log(`✅ Reality switched to ${realityToSwitch} for ${normalizedPassphrase}`);
-            } catch (dbError) {
-                console.log('⚠️ Database update error:', dbError.message);
-            }
-        }
+        const result = await gameOrchestrator.generateStoryContent(passphrase, reality);
+        res.json(result);
 
-        res.json({
-            success: true,
-            newReality: realityToSwitch,
-            message: `Consciousness shifted to ${realityToSwitch === 'wutong' ? 'WuTong Mountain (Utopia)' : 'WokeMound (Horror)'}`
+    } catch (error) {
+        console.error('Story generation error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Story generation temporarily unavailable'
         });
+    }
+});
+
+// Process choice with Claude
+app.post('/api/choice/process', claudeLimiter, async (req, res) => {
+    try {
+        const { passphrase, choice } = req.body;
+
+        if (!gameOrchestrator) {
+            return res.status(500).json({
+                success: false,
+                error: 'Claude API not available'
+            });
+        }
+
+        if (!passphrase || !choice) {
+            return res.status(400).json({
+                success: false,
+                error: 'Passphrase and choice required'
+            });
+        }
+
+        const result = await gameOrchestrator.processChoice(passphrase, choice);
+        res.json(result);
+
+    } catch (error) {
+        console.error('Choice processing error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Choice processing temporarily unavailable'
+        });
+    }
+});
+
+// Switch reality with consciousness transfer
+app.post('/api/reality/switch', claudeLimiter, async (req, res) => {
+    try {
+        const { passphrase, target_reality } = req.body;
+
+        if (!gameOrchestrator) {
+            return res.status(500).json({
+                success: false,
+                error: 'Claude API not available'
+            });
+        }
+
+        if (!passphrase || !['wokemound', 'wutong'].includes(target_reality)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Valid passphrase and target reality required'
+            });
+        }
+
+        const result = await gameOrchestrator.switchReality(passphrase, target_reality);
+        res.json(result);
+
     } catch (error) {
         console.error('Reality switch error:', error);
         res.status(500).json({
             success: false,
-            error: 'Failed to switch realities'
+            error: 'Reality transfer temporarily unavailable'
         });
     }
 });
 
-// Catch-all route for SPA
-app.get('*', (req, res) => {
-    res.sendFile(join(__dirname, '../public/index.html'));
+// Initiate dream sharing
+app.post('/api/dream/share', claudeLimiter, async (req, res) => {
+    try {
+        const { helper_passphrase, dreamer_id } = req.body;
+
+        if (!gameOrchestrator) {
+            return res.status(500).json({
+                success: false,
+                error: 'Claude API not available'
+            });
+        }
+
+        if (!helper_passphrase) {
+            return res.status(400).json({
+                success: false,
+                error: 'Helper passphrase required'
+            });
+        }
+
+        const result = await gameOrchestrator.initiateDreamSharing(
+            helper_passphrase, 
+            dreamer_id || `dreamer-${Date.now()}`
+        );
+        res.json(result);
+
+    } catch (error) {
+        console.error('Dream sharing error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Dream sharing temporarily unavailable'
+        });
+    }
+});
+
+// Add player choice to community pool
+app.post('/api/choice/add', claudeLimiter, async (req, res) => {
+    try {
+        const { passphrase, choice_text, game_context } = req.body;
+
+        if (!gameOrchestrator) {
+            return res.status(500).json({
+                success: false,
+                error: 'Claude API not available'
+            });
+        }
+
+        if (!passphrase || !choice_text) {
+            return res.status(400).json({
+                success: false,
+                error: 'Passphrase and choice text required'
+            });
+        }
+
+        const result = await gameOrchestrator.addPlayerChoice(
+            passphrase, 
+            choice_text, 
+            game_context || {}
+        );
+        res.json(result);
+
+    } catch (error) {
+        console.error('Choice addition error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Choice addition temporarily unavailable'
+        });
+    }
+});
+
+// Welcome endpoint
+app.get('/', (req, res) => {
+    res.json({
+        message: '🌟 WuTong Mountain - Consciousness Evolution Gaming Platform',
+        status: 'Consciousness evolution system online',
+        claude_integration: process.env.CLAUDE_API_KEY ? 'Active ✅' : 'Not configured ❌',
+        endpoints: {
+            health: '/health',
+            new_player: 'POST /api/player/new',
+            get_player: 'GET /api/player/:passphrase',
+            generate_story: 'POST /api/story/generate',
+            process_choice: 'POST /api/choice/process',
+            switch_reality: 'POST /api/reality/switch',
+            dream_sharing: 'POST /api/dream/share',
+            add_choice: 'POST /api/choice/add'
+        }
+    });
+});
+
+// Error handling
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({
+        error: 'Internal server error',
+        message: 'Consciousness evolution continues despite temporary obstacles'
+    });
 });
 
 // Start server
 async function startServer() {
-    await initializeDatabases();
-    app.listen(PORT, () => {
-        console.log(`
-🏔️ WuTong Mountain Consciousness Evolution Server Running!
-
-🌟 Server: http://localhost:${PORT}
-🌟 Health: http://localhost:${PORT}/health
-🌟 Environment: ${process.env.NODE_ENV || 'development'}
-
-✨ Ready for consciousness evolution journeys! ✨
-        `);
-    });
+    try {
+        await initializeConnections();
+        
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`🏔️ WuTong Mountain server running on port ${PORT}`);
+            console.log(`🌐 URL: ${process.env.RAILWAY_PUBLIC_DOMAIN || `http://localhost:${PORT}`}`);
+            console.log(`🧠 Claude API: ${process.env.CLAUDE_API_KEY ? 'Connected' : 'Not configured'}`);
+            console.log(`💾 Database: ${dbPool ? 'Connected' : 'Not configured'}`);
+            console.log(`⚡ Redis: ${redisClient ? 'Connected' : 'Not configured'}`);
+            console.log('🚀 Consciousness evolution platform with AI storytelling LIVE!');
+        });
+    } catch (error) {
+        console.error('❌ Failed to start server:', error);
+        process.exit(1);
+    }
 }
 
 process.on('SIGTERM', async () => {
