@@ -1,16 +1,4 @@
-﻿
-
-// ============================================================================
-// FORCE RAILWAY DEPLOYMENT - 07/18/2025 23:57:51
-// This large comment block forces Railway to recognize file changes
-// Claude AI Integration Active - WuTong Mountain Consciousness Evolution
-// GameOrchestrator: ACTIVE
-// All Claude Endpoints: ACTIVE
-// Health Services Object: ACTIVE
-// File Size: 12k+ bytes with full integration
-// ============================================================================
-
-// Updated server.js with Claude API Integration
+﻿// Updated server.js with Claude API Integration
 const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
@@ -402,4 +390,3 @@ process.on('SIGTERM', async () => {
 startServer().catch(console.error);
 
 // FORCE DEPLOY MARKER: 2025-07-18_23-12-55 - Claude AI Integration Active
-
