@@ -32,14 +32,14 @@ async function initializeDatabases() {
                 idleTimeoutMillis: 30000,
                 connectionTimeoutMillis: 2000,
             });
-            
+
             // Test connection and create tables
             await createTables();
             console.log('✅ PostgreSQL connected and tables ready');
         }
 
         // Redis connection (optional)
-        if (process.env.REDIS_URL) {
+        if (process.env.REDIS_URL && process.env.REDIS_URL.trim()) {
             redisClient = createClient({ url: process.env.REDIS_URL });
             redisClient.on('error', (err) => console.log('Redis Error:', err));
             await redisClient.connect();
@@ -63,25 +63,25 @@ async function createTables() {
                 spiral_points INTEGER DEFAULT 0,
                 current_reality VARCHAR(20) DEFAULT 'wutong',
                 current_location VARCHAR(100) DEFAULT 'arrival-point',
-                
+
                 -- Core stats (0-100 scale)
                 insight INTEGER DEFAULT 35,
                 presence INTEGER DEFAULT 35,
                 resolve INTEGER DEFAULT 35,
                 vigor INTEGER DEFAULT 35,
                 harmony INTEGER DEFAULT 35,
-                
+
                 -- Service metrics for spiral progression
                 service_actions INTEGER DEFAULT 0,
                 trauma_healing_actions INTEGER DEFAULT 0,
                 collaborative_actions INTEGER DEFAULT 0,
-                
+
                 -- Community impact
                 choices_created INTEGER DEFAULT 0,
                 choices_adopted INTEGER DEFAULT 0,
                 players_helped INTEGER DEFAULT 0,
                 success_rate DECIMAL(3,2) DEFAULT 0.00,
-                
+
                 -- Metadata - FIXED: Added sessions_count
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -178,13 +178,13 @@ function generatePassphrase() {
         'wise', 'gentle', 'radiant', 'serene', 'mystic', 'flowing', 'dancing',
         'luminous', 'peaceful', 'sacred', 'eternal', 'cosmic', 'stellar'
     ];
-    
+
     const nouns = [
         'moon', 'star', 'wind', 'river', 'mountain', 'ocean', 'forest',
         'crystal', 'harmony', 'spirit', 'dawn', 'light', 'phoenix', 'dragon',
         'lotus', 'sage', 'oracle', 'wanderer', 'temple', 'bridge'
     ];
-    
+
     const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
     const noun = nouns[Math.floor(Math.random() * nouns.length)];
     return `${adjective}-${noun}`;
@@ -204,7 +204,7 @@ function normalizePassphrase(passphrase) {
 app.post('/api/player/new', async (req, res) => {
     try {
         const passphrase = generatePassphrase();
-        
+
         // Create player record
         let player = {
             passphrase: passphrase,
@@ -226,7 +226,7 @@ app.post('/api/player/new', async (req, res) => {
             try {
                 const result = await dbPool.query(`
                     INSERT INTO players (
-                        passphrase, consciousness_level, spiral_points, 
+                        passphrase, consciousness_level, spiral_points,
                         current_reality, current_location,
                         insight, presence, resolve, vigor, harmony
                     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
@@ -235,7 +235,7 @@ app.post('/api/player/new', async (req, res) => {
                     passphrase, 0, 0, 'wutong', 'arrival-point',
                     35, 35, 35, 35, 35
                 ]);
-                
+
                 console.log('✅ New consciousness journey created:', passphrase);
             } catch (dbError) {
                 console.log('⚠️ Database not ready, using memory:', dbError.message);
@@ -264,7 +264,7 @@ app.get('/api/player/:passphrase', async (req, res) => {
     try {
         const { passphrase } = req.params;
         const normalizedPassphrase = normalizePassphrase(passphrase);
-        
+
         if (!isValidPassphrase(normalizedPassphrase)) {
             return res.status(400).json({
                 success: false,
@@ -274,7 +274,7 @@ app.get('/api/player/:passphrase', async (req, res) => {
         }
 
         let player = null;
-        
+
         // Try to load from database
         if (dbPool) {
             try {
@@ -284,10 +284,10 @@ app.get('/api/player/:passphrase', async (req, res) => {
 
                 if (result.rows.length > 0) {
                     const dbPlayer = result.rows[0];
-                    
+
                     // Update last active and sessions_count - FIXED
                     await dbPool.query(`
-                        UPDATE players SET 
+                        UPDATE players SET
                             last_active = CURRENT_TIMESTAMP,
                             sessions_count = COALESCE(sessions_count, 0) + 1
                         WHERE passphrase = $1
@@ -358,7 +358,7 @@ app.post('/api/reality/switch', async (req, res) => {
     try {
         const { passphrase, newReality, target_reality } = req.body;
         const realityToSwitch = newReality || target_reality;
-        
+
         if (!passphrase || !realityToSwitch) {
             return res.status(400).json({
                 success: false,
@@ -368,7 +368,7 @@ app.post('/api/reality/switch', async (req, res) => {
         }
 
         const normalizedPassphrase = normalizePassphrase(passphrase);
-        
+
         // Validate reality
         if (!['wutong', 'wokemound'].includes(realityToSwitch)) {
             return res.status(400).json({
@@ -382,12 +382,12 @@ app.post('/api/reality/switch', async (req, res) => {
         if (dbPool) {
             try {
                 await dbPool.query(`
-                    UPDATE players SET 
+                    UPDATE players SET
                         current_reality = $1,
                         last_active = CURRENT_TIMESTAMP
                     WHERE passphrase = $2
                 `, [realityToSwitch, normalizedPassphrase]);
-                
+
                 console.log(`✅ Reality switched to ${realityToSwitch} for ${normalizedPassphrase}`);
             } catch (dbError) {
                 console.log('⚠️ Database update error:', dbError.message);
@@ -414,7 +414,7 @@ app.post('/api/reality/switch', async (req, res) => {
 app.post('/api/story/generate', async (req, res) => {
     try {
         const { passphrase, previous_choice } = req.body;
-        
+
         // TODO: Integrate with Claude API for dynamic story generation
         res.json({
             success: true,
@@ -441,7 +441,7 @@ app.post('/api/story/generate', async (req, res) => {
 app.post('/api/choice/process', async (req, res) => {
     try {
         const { passphrase, choice } = req.body;
-        
+
         // Basic choice processing logic
         const statsChanged = {};
         let spiralPoints = 0;
@@ -462,15 +462,15 @@ app.post('/api/choice/process', async (req, res) => {
         // Update database if available
         if (dbPool && Object.keys(statsChanged).length > 0) {
             try {
-                const updateFields = Object.keys(statsChanged).map((key, index) => 
+                const updateFields = Object.keys(statsChanged).map((key, index) =>
                     `${key} = LEAST(100, GREATEST(0, ${key} + $${index + 2}))`
                 ).join(', ');
-                
+
                 const values = [normalizePassphrase(passphrase), ...Object.values(statsChanged)];
-                
+
                 if (spiralPoints > 0) {
                     await dbPool.query(`
-                        UPDATE players SET 
+                        UPDATE players SET
                             ${updateFields},
                             spiral_points = spiral_points + $${values.length + 1}
                         WHERE passphrase = $1
@@ -524,7 +524,7 @@ app.get('*', (req, res) => {
 // Start server
 async function startServer() {
     await initializeDatabases();
-    
+
     app.listen(PORT, () => {
         console.log(`
 🏔️ WuTong Mountain Consciousness Evolution Server Running!
