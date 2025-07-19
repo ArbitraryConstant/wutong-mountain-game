@@ -388,3 +388,5 @@ process.on('SIGTERM', async () => {
 });
 
 startServer().catch(console.error);
+
+// FORCE DEPLOY MARKER: 2025-07-18_23-12-55 - Claude AI Integration Active
