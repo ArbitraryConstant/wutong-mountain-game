@@ -46,7 +46,7 @@ async function initializeDatabases() {
             console.log('✅ Redis connected');
         }
     } catch (error) {
-        console.log(⚠️ Database initializing...', error.message);
+        console.log('⚠️ Database initializing...', error.message);
     }
 }
 
