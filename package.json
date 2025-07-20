@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "echo \"No tests specified\" && exit 0",
+    "build": "echo \"Build complete\""
   },
   "keywords": ["consciousness", "gaming", "ai", "claude", "spirituality"],
   "author": "WuTong Mountain Development Team",
