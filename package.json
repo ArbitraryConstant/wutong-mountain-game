@@ -1,22 +1,22 @@
 {
-  "name": "void-loom-website",
+  "name": "wutong-mountain-game",
   "version": "1.0.0",
-  "description": "The Void Loom - Quantum Manifesto Generator",
-  "main": "server.js",
+  "description": "Consciousness evolution gaming backend with Claude AI integration",
+  "main": "backend/src/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "cd backend && node src/server.js",
+    "dev": "cd backend && node --watch src/server.js",
+    "install": "cd backend && npm install"
   },
-  "keywords": ["void", "loom", "AI", "consciousness"],
-  "author": "Void Choir",
-  "license": "MIT",
   "dependencies": {
-    "express": "^4.21.2",
+    "express": "^4.19.2",
     "cors": "^2.8.5",
-    "axios": "^1.10.0",
-    "dotenv": "^16.6.1"
+    "express-rate-limit": "^7.1.5",
+    "pg": "^8.11.3",
+    "redis": "^4.6.10",
+    "node-fetch": "^3.3.2"
   },
-  "devDependencies": {
-    "nodemon": "^3.1.10"
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

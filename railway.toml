@@ -5,6 +5,3 @@ builder = "nixpacks"
 startCommand = "cd backend && node src/server.js"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
-
-[environments.production.deploy]
-startCommand = "cd backend && node src/server.js"
