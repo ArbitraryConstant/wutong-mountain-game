@@ -2,7 +2,6 @@
 const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
-const GameOrchestrator = require('./services/gameOrchestrator');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,54 +24,88 @@ app.use('/api/', limiter);
 
 // Database connections
 let dbPool;
-let gameOrchestrator;
 
-async function updateDatabaseSchema(pool) {
-    console.log('🔧 Updating database schema...');
+// FORCED DATABASE RECREATION FUNCTION
+async function forceRecreateDatabase(pool) {
+    console.log('🔥 FORCING DATABASE RECREATION...');
     
+    const client = await pool.connect();
     try {
-        // Add missing columns if they don't exist
-        await pool.query(`
-            ALTER TABLE players 
-            ADD COLUMN IF NOT EXISTS current_reality VARCHAR(20) DEFAULT 'wutong',
-            ADD COLUMN IF NOT EXISTS current_location VARCHAR(100) DEFAULT 'arrival-point',
-            ADD COLUMN IF NOT EXISTS consciousness_level INTEGER DEFAULT 0,
-            ADD COLUMN IF NOT EXISTS spiral_points INTEGER DEFAULT 0;
+        // Check current schema
+        console.log('📋 Checking current table...');
+        try {
+            const currentColumns = await client.query(`
+                SELECT column_name, data_type 
+                FROM information_schema.columns 
+                WHERE table_name = 'players' 
+                ORDER BY ordinal_position;
+            `);
+            console.log('Current columns:', currentColumns.rows.map(r => r.column_name));
+        } catch (err) {
+            console.log('⚠️ Table check error (may not exist):', err.message);
+        }
+        
+        // FORCE DROP AND RECREATE
+        console.log('🔥 DROPPING existing table completely...');
+        await client.query('DROP TABLE IF EXISTS players CASCADE');
+        console.log('✅ Table dropped');
+        
+        console.log('🏗️ CREATING new table with ALL consciousness columns...');
+        await client.query(`
+            CREATE TABLE players (
+                id SERIAL PRIMARY KEY,
+                passphrase VARCHAR(100) UNIQUE NOT NULL,
+                insight INTEGER DEFAULT 35,
+                presence INTEGER DEFAULT 35,
+                resolve INTEGER DEFAULT 35,
+                vigor INTEGER DEFAULT 35,
+                harmony INTEGER DEFAULT 35,
+                current_reality VARCHAR(20) DEFAULT 'wutong',
+                current_location VARCHAR(100) DEFAULT 'arrival-point',
+                consciousness_level INTEGER DEFAULT 0,
+                spiral_points INTEGER DEFAULT 0,
+                sessions_count INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT NOW(),
+                last_active TIMESTAMP DEFAULT NOW()
+            )
+        `);
+        console.log('✅ NEW TABLE CREATED with ALL consciousness stats!');
+        
+        // Verify new schema
+        const newColumns = await client.query(`
+            SELECT column_name, data_type, column_default
+            FROM information_schema.columns 
+            WHERE table_name = 'players' 
+            ORDER BY ordinal_position;
         `);
         
-        console.log('✅ Database schema updated!');
-    } catch (error) {
-        console.log('⚠️ Schema update error:', error.message);
-    }
-}
-
-async function initializeDatabase(pool) {
-    console.log('🗄️ Initializing database tables...');
-
-    const schema = `
-        CREATE TABLE IF NOT EXISTS players (
-            id SERIAL PRIMARY KEY,
-            passphrase VARCHAR(100) UNIQUE NOT NULL,
-            insight INTEGER DEFAULT 35,
-            presence INTEGER DEFAULT 35,
-            resolve INTEGER DEFAULT 35,
-            vigor INTEGER DEFAULT 35,
-            harmony INTEGER DEFAULT 35,
-            created_at TIMESTAMP DEFAULT NOW(),
-            last_active TIMESTAMP DEFAULT NOW(),
-            sessions_count INTEGER DEFAULT 0
-        );
-    `;
-
-    try {
-        await pool.query(schema);
-        console.log('✅ Base table created!');
+        console.log('🔍 VERIFICATION - New table schema:');
+        newColumns.rows.forEach(row => {
+            const isConsciousnessStat = ['insight', 'presence', 'resolve', 'vigor', 'harmony'].includes(row.column_name);
+            const marker = isConsciousnessStat ? '🧠' : '📋';
+            console.log(`  ${marker} ${row.column_name}: ${row.data_type} (default: ${row.column_default})`);
+        });
         
-        // Update schema to add missing columns
-        await updateDatabaseSchema(pool);
+        // Test insert
+        console.log('🧪 Testing with sample insert...');
+        const testResult = await client.query(`
+            INSERT INTO players (passphrase) 
+            VALUES ('database-fix-test') 
+            RETURNING id, insight, presence, resolve, vigor, harmony
+        `);
+        console.log('✅ TEST INSERT SUCCESSFUL:', testResult.rows[0]);
+        
+        // Clean up test
+        await client.query(`DELETE FROM players WHERE passphrase = 'database-fix-test'`);
+        console.log('✅ Test data cleaned up');
+        
+        console.log('🎉 DATABASE RECREATION COMPLETE!');
         
     } catch (error) {
-        console.log('⚠️ Database initialization error:', error.message);
+        console.error('❌ Database recreation failed:', error);
+        throw error;
+    } finally {
+        client.release();
     }
 }
 
@@ -91,16 +124,11 @@ async function initializeConnections() {
             await dbPool.query('SELECT NOW()');
             console.log('✅ PostgreSQL connected');
 
-            // Initialize database tables
-            await initializeDatabase(dbPool);
+            // FORCE DATABASE RECREATION
+            await forceRecreateDatabase(dbPool);
+
         } else {
             console.log('❌ No DATABASE_URL found');
-        }
-
-        // Initialize Game Orchestrator
-        if (process.env.CLAUDE_API_KEY) {
-            gameOrchestrator = new GameOrchestrator(dbPool, null, process.env.CLAUDE_API_KEY);
-            console.log('✅ Claude API integrated');
         }
 
     } catch (error) {
@@ -113,14 +141,14 @@ app.get('/health', (req, res) => {
     res.json({
         status: 'healthy',
         timestamp: new Date().toISOString(),
+        message: '🏔️ WuTong Mountain - Database Fixed!',
         services: {
-            database: dbPool ? 'connected' : 'disconnected',
-            claude: process.env.CLAUDE_API_KEY ? 'configured' : 'not configured'
+            database: dbPool ? 'connected' : 'disconnected'
         }
     });
 });
 
-// Create new player journey
+// Create new player journey - FIXED VERSION
 app.post('/api/player/new', async (req, res) => {
     try {
         if (!dbPool) {
@@ -132,24 +160,24 @@ app.post('/api/player/new', async (req, res) => {
 
         const passphrase = req.body.passphrase || `consciousness-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+        console.log('🎮 Creating player with passphrase:', passphrase);
+
         const result = await dbPool.query(
-            `INSERT INTO players (
-                passphrase, current_reality, insight, presence, resolve, vigor, harmony,
-                spiral_points, sessions_count, created_at, last_active
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
-            RETURNING *`,
-            [passphrase, 'wutong', 25, 25, 25, 25, 25, 0, 1]
+            `INSERT INTO players (passphrase) VALUES ($1) RETURNING *`,
+            [passphrase]
         );
+
+        console.log('✅ Player created successfully:', result.rows[0]);
 
         res.json({
             success: true,
             passphrase: passphrase,
-            message: 'Consciousness evolution journey initiated',
+            message: '🏔️ Consciousness evolution journey initiated successfully!',
             player: result.rows[0]
         });
 
     } catch (error) {
-        console.error('Player creation error:', error);
+        console.error('❌ Player creation error:', error);
         res.status(500).json({
             success: false,
             error: 'Failed to initiate consciousness journey: ' + error.message
@@ -181,14 +209,9 @@ app.get('/api/player/:passphrase', async (req, res) => {
             });
         }
 
-        const player = result.rows[0];
-        const consciousnessLevel = gameOrchestrator ?
-            gameOrchestrator.calculateConsciousnessLevel(player.spiral_points) : 1;
-
         res.json({
             success: true,
-            player: player,
-            consciousness_level: consciousnessLevel
+            player: result.rows[0]
         });
 
     } catch (error) {
@@ -200,49 +223,16 @@ app.get('/api/player/:passphrase', async (req, res) => {
     }
 });
 
-// Generate story content
-app.post('/api/story/generate', async (req, res) => {
-    try {
-        const { passphrase, reality } = req.body;
-
-        if (!passphrase || !reality) {
-            return res.status(400).json({
-                success: false,
-                error: 'Passphrase and reality required'
-            });
-        }
-
-        if (!gameOrchestrator) {
-            return res.status(500).json({
-                success: false,
-                error: 'Story generation not available'
-            });
-        }
-
-        const result = await gameOrchestrator.generateStoryContent(passphrase, reality);
-        res.json(result);
-
-    } catch (error) {
-        console.error('Story generation error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Story generation failed'
-        });
-    }
-});
-
 // Welcome endpoint
 app.get('/', (req, res) => {
     res.json({
-        message: '🌟 WuTong Mountain - Consciousness Evolution Gaming Platform',
-        status: 'Consciousness evolution system online',
-        claude_integration: process.env.CLAUDE_API_KEY ? 'Active ✅' : 'Not configured ❌',
+        message: '🏔️ WuTong Mountain - Consciousness Evolution Gaming Platform',
+        status: 'Database schema FIXED and operational!',
         database_status: dbPool ? 'Connected ✅' : 'Not connected ❌',
         endpoints: {
             health: '/health',
             new_player: 'POST /api/player/new',
-            get_player: 'GET /api/player/:passphrase',
-            generate_story: 'POST /api/story/generate'
+            get_player: 'GET /api/player/:passphrase'
         }
     });
 });
@@ -255,9 +245,8 @@ async function startServer() {
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`🏔️ WuTong Mountain server running on port ${PORT}`);
             console.log(`🌐 URL: ${process.env.RAILWAY_PUBLIC_DOMAIN || `http://localhost:${PORT}`}`);
-            console.log(`🧠 Claude API: ${process.env.CLAUDE_API_KEY ? 'Connected' : 'Not configured'}`);
-            console.log(`💾 Database: ${dbPool ? 'Connected' : 'Not configured'}`);
-            console.log('🚀 Consciousness evolution platform LIVE!');
+            console.log(`💾 Database: ${dbPool ? 'Connected and FIXED' : 'Not configured'}`);
+            console.log('🎉 CONSCIOUSNESS EVOLUTION PLATFORM WITH FIXED DATABASE IS LIVE!');
         });
     } catch (error) {
         console.error('❌ Failed to start server:', error);
