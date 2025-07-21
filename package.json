@@ -1,22 +1,22 @@
-{
-  "name": "wutong-mountain-game",
-  "version": "1.0.0",
-  "description": "Consciousness evolution gaming backend with Claude AI integration",
-  "main": "backend/src/server.js",
-  "scripts": {
-    "start": "cd backend && node src/server.js",
-    "dev": "cd backend && node --watch src/server.js",
-    "install": "cd backend && npm install"
-  },
-  "dependencies": {
-    "express": "^4.19.2",
-    "cors": "^2.8.5",
-    "express-rate-limit": "^7.1.5",
-    "pg": "^8.11.3",
-    "redis": "^4.6.10",
-    "node-fetch": "^3.3.2"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+﻿{
+    "version":  "1.0.0",
+    "name":  "wutong-mountain-backend",
+    "description":  "Consciousness evolution gaming backend with Claude AI integration",
+    "scripts":  {
+                    "test":  "echo \"No tests specified\" \u0026\u0026 exit 0",
+                    "dev":  "node --watch src/server.js",
+                    "start":  "node src/server.js"
+                },
+    "dependencies":  {
+                         "pg":  "^8.11.3",
+                         "redis":  "^4.6.10",
+                         "cors":  "^2.8.5",
+                         "express-rate-limit":  "^7.1.5",
+                         "express":  "^4.19.2",
+                         "node-fetch":  "^3.3.2"
+                     },
+    "engines":  {
+                    "node":  "\u003e=18.0.0"
+                },
+    "main":  "src/server.js"
 }
