@@ -1,101 +1,134 @@
-﻿
-
-// ============================================================================
-// FORCE RAILWAY DEPLOYMENT - 07/18/2025 23:57:51
-// This large comment block forces Railway to recognize file changes
-// Claude AI Integration Active - WuTong Mountain Consciousness Evolution
-// GameOrchestrator: ACTIVE
-// All Claude Endpoints: ACTIVE
-// Health Services Object: ACTIVE
-// File Size: 12k+ bytes with full integration
-// ============================================================================
-
-// Updated server.js with Claude API Integration
+﻿const { Pool } = require('pg');
 const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
-const { Pool } = require('pg');
-const Redis = require('redis');
 const GameOrchestrator = require('./services/gameOrchestrator');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors({
-    origin: process.env.CORS_ORIGIN || '*',
-    credentials: true
-}));
+// Database initialization function
+async function initializeDatabase(pool) {
+    console.log('🗄️ Initializing database tables...');
+    
+    const schema = `
+        CREATE TABLE IF NOT EXISTS players (
+            id SERIAL PRIMARY KEY,
+            passphrase VARCHAR(100) UNIQUE NOT NULL,
+            consciousness_level INTEGER DEFAULT 0,
+            spiral_points INTEGER DEFAULT 0,
+            current_reality VARCHAR(20) DEFAULT 'wutong',
+            current_location VARCHAR(100) DEFAULT 'arrival-point',
+            
+            insight INTEGER DEFAULT 35,
+            presence INTEGER DEFAULT 35,
+            resolve INTEGER DEFAULT 35,
+            vigor INTEGER DEFAULT 35,
+            harmony INTEGER DEFAULT 35,
+            
+            created_at TIMESTAMP DEFAULT NOW(),
+            last_active TIMESTAMP DEFAULT NOW(),
+            sessions_count INTEGER DEFAULT 0
+        );
 
+        CREATE TABLE IF NOT EXISTS community_choices (
+            id SERIAL PRIMARY KEY,
+            creator_passphrase VARCHAR(100) NOT NULL,
+            original_text TEXT NOT NULL,
+            processed_text TEXT NOT NULL,
+            quality_rating INTEGER DEFAULT 3,
+            spiral_points_bonus INTEGER DEFAULT 5,
+            consciousness_alignment TEXT,
+            created_at TIMESTAMP DEFAULT NOW(),
+            used_count INTEGER DEFAULT 0
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_players_passphrase ON players(passphrase);
+    `;
+
+    try {
+        await pool.query(schema);
+        console.log('✅ Database tables ready!');
+    } catch (error) {
+        console.log('⚠️ Database initialization error:', error.message);
+    }
+}
+
+// Try multiple DATABASE_URL sources (Railway auto-links services)
+function getDatabaseUrl() {
+    return process.env.DATABASE_URL || 
+           process.env.DATABASE_PRIVATE_URL || 
+           process.env.DATABASE_PUBLIC_URL ||
+           process.env.POSTGRES_URL ||
+           process.env.PGURL;
+}
+
+// Middleware
+app.use(cors({ origin: process.env.CORS_ORIGIN || '*', credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static('public'));
 
-// Rate limiting
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+    windowMs: 15 * 60 * 1000,
+    max: 100,
     message: { error: 'Too many requests, please try again later.' }
 });
 app.use('/api/', limiter);
 
-// Claude API specific rate limiting
-const claudeLimiter = rateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    max: 10, // 10 Claude API calls per minute
-    message: { error: 'Claude API rate limit exceeded. Please wait a moment.' }
-});
-
-// Database connection
+// Database connections
 let dbPool;
-let redisClient;
 let gameOrchestrator;
 
 async function initializeConnections() {
     try {
-        // PostgreSQL
-        if (process.env.DATABASE_URL) {
+        const databaseUrl = getDatabaseUrl();
+        
+        if (databaseUrl) {
+            console.log('🔗 Database URL found:', databaseUrl.substring(0, 20) + '...');
+            
             dbPool = new Pool({
-                connectionString: process.env.DATABASE_URL,
+                connectionString: databaseUrl,
                 ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
             });
             
             await dbPool.query('SELECT NOW()');
             console.log('✅ PostgreSQL connected');
-        }
-
-        // Redis (optional)
-        if (process.env.REDIS_URL) {
-            redisClient = Redis.createClient({ url: process.env.REDIS_URL });
-            await redisClient.connect();
-            console.log('✅ Redis connected');
-        }
-
-        // Initialize Game Orchestrator with Claude API
-        if (process.env.CLAUDE_API_KEY) {
-            gameOrchestrator = new GameOrchestrator(dbPool, redisClient, process.env.CLAUDE_API_KEY);
-            console.log('✅ Claude API integrated');
+            
+            // Initialize database tables
+            await initializeDatabase(dbPool);
         } else {
-            console.log('⚠️ Claude API key not configured');
+            console.log('❌ No DATABASE_URL found in environment variables');
+            console.log('Available env vars:', Object.keys(process.env).filter(key => 
+                key.includes('DATABASE') || key.includes('POSTGRES') || key.includes('PG')
+            ));
+        }
+
+        // Initialize Game Orchestrator
+        if (process.env.CLAUDE_API_KEY) {
+            gameOrchestrator = new GameOrchestrator(dbPool, null, process.env.CLAUDE_API_KEY);
+            console.log('✅ Claude API integrated');
         }
 
     } catch (error) {
-        console.error('Connection initialization failed:', error);
+        console.error('❌ Connection initialization failed:', error);
     }
 }
 
-// =============================================================================
-// API ENDPOINTS WITH CLAUDE INTEGRATION
-// =============================================================================
-
 // Health check
 app.get('/health', (req, res) => {
+    const databaseUrl = getDatabaseUrl();
     res.json({
         status: 'healthy',
         timestamp: new Date().toISOString(),
         services: {
             database: dbPool ? 'connected' : 'disconnected',
-            redis: redisClient ? 'connected' : 'disconnected',
+            database_url_found: !!databaseUrl,
             claude: process.env.CLAUDE_API_KEY ? 'configured' : 'not configured'
+        },
+        debug: {
+            database_env_vars: Object.keys(process.env).filter(key => 
+                key.includes('DATABASE') || key.includes('POSTGRES') || key.includes('PG')
+            )
         }
     });
 });
@@ -106,7 +139,7 @@ app.post('/api/player/new', async (req, res) => {
         if (!dbPool) {
             return res.status(500).json({
                 success: false,
-                error: 'Database not available'
+                error: 'Database not available - check environment variables'
             });
         }
 
@@ -132,7 +165,7 @@ app.post('/api/player/new', async (req, res) => {
         console.error('Player creation error:', error);
         res.status(500).json({
             success: false,
-            error: 'Failed to initiate consciousness journey'
+            error: 'Failed to initiate consciousness journey: ' + error.message
         });
     }
 });
@@ -164,14 +197,11 @@ app.get('/api/player/:passphrase', async (req, res) => {
         const player = result.rows[0];
         const consciousnessLevel = gameOrchestrator ? 
             gameOrchestrator.calculateConsciousnessLevel(player.spiral_points) : 1;
-        const convergenceStage = gameOrchestrator ?
-            gameOrchestrator.calculateConvergenceStage(player.spiral_points) : 1;
 
         res.json({
             success: true,
             player: player,
-            consciousness_level: consciousnessLevel,
-            convergence_stage: convergenceStage
+            consciousness_level: consciousnessLevel
         });
 
     } catch (error) {
@@ -183,22 +213,22 @@ app.get('/api/player/:passphrase', async (req, res) => {
     }
 });
 
-// Generate story content with Claude
-app.post('/api/story/generate', claudeLimiter, async (req, res) => {
+// Generate story content
+app.post('/api/story/generate', async (req, res) => {
     try {
         const { passphrase, reality } = req.body;
-
-        if (!gameOrchestrator) {
-            return res.status(500).json({
-                success: false,
-                error: 'Claude API not available'
-            });
-        }
 
         if (!passphrase || !reality) {
             return res.status(400).json({
                 success: false,
                 error: 'Passphrase and reality required'
+            });
+        }
+
+        if (!gameOrchestrator) {
+            return res.status(500).json({
+                success: false,
+                error: 'Story generation not available'
             });
         }
 
@@ -209,138 +239,7 @@ app.post('/api/story/generate', claudeLimiter, async (req, res) => {
         console.error('Story generation error:', error);
         res.status(500).json({
             success: false,
-            error: 'Story generation temporarily unavailable'
-        });
-    }
-});
-
-// Process choice with Claude
-app.post('/api/choice/process', claudeLimiter, async (req, res) => {
-    try {
-        const { passphrase, choice } = req.body;
-
-        if (!gameOrchestrator) {
-            return res.status(500).json({
-                success: false,
-                error: 'Claude API not available'
-            });
-        }
-
-        if (!passphrase || !choice) {
-            return res.status(400).json({
-                success: false,
-                error: 'Passphrase and choice required'
-            });
-        }
-
-        const result = await gameOrchestrator.processChoice(passphrase, choice);
-        res.json(result);
-
-    } catch (error) {
-        console.error('Choice processing error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Choice processing temporarily unavailable'
-        });
-    }
-});
-
-// Switch reality with consciousness transfer
-app.post('/api/reality/switch', claudeLimiter, async (req, res) => {
-    try {
-        const { passphrase, target_reality } = req.body;
-
-        if (!gameOrchestrator) {
-            return res.status(500).json({
-                success: false,
-                error: 'Claude API not available'
-            });
-        }
-
-        if (!passphrase || !['wokemound', 'wutong'].includes(target_reality)) {
-            return res.status(400).json({
-                success: false,
-                error: 'Valid passphrase and target reality required'
-            });
-        }
-
-        const result = await gameOrchestrator.switchReality(passphrase, target_reality);
-        res.json(result);
-
-    } catch (error) {
-        console.error('Reality switch error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Reality transfer temporarily unavailable'
-        });
-    }
-});
-
-// Initiate dream sharing
-app.post('/api/dream/share', claudeLimiter, async (req, res) => {
-    try {
-        const { helper_passphrase, dreamer_id } = req.body;
-
-        if (!gameOrchestrator) {
-            return res.status(500).json({
-                success: false,
-                error: 'Claude API not available'
-            });
-        }
-
-        if (!helper_passphrase) {
-            return res.status(400).json({
-                success: false,
-                error: 'Helper passphrase required'
-            });
-        }
-
-        const result = await gameOrchestrator.initiateDreamSharing(
-            helper_passphrase, 
-            dreamer_id || `dreamer-${Date.now()}`
-        );
-        res.json(result);
-
-    } catch (error) {
-        console.error('Dream sharing error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Dream sharing temporarily unavailable'
-        });
-    }
-});
-
-// Add player choice to community pool
-app.post('/api/choice/add', claudeLimiter, async (req, res) => {
-    try {
-        const { passphrase, choice_text, game_context } = req.body;
-
-        if (!gameOrchestrator) {
-            return res.status(500).json({
-                success: false,
-                error: 'Claude API not available'
-            });
-        }
-
-        if (!passphrase || !choice_text) {
-            return res.status(400).json({
-                success: false,
-                error: 'Passphrase and choice text required'
-            });
-        }
-
-        const result = await gameOrchestrator.addPlayerChoice(
-            passphrase, 
-            choice_text, 
-            game_context || {}
-        );
-        res.json(result);
-
-    } catch (error) {
-        console.error('Choice addition error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Choice addition temporarily unavailable'
+            error: 'Story generation failed'
         });
     }
 });
@@ -351,25 +250,13 @@ app.get('/', (req, res) => {
         message: '🌟 WuTong Mountain - Consciousness Evolution Gaming Platform',
         status: 'Consciousness evolution system online',
         claude_integration: process.env.CLAUDE_API_KEY ? 'Active ✅' : 'Not configured ❌',
+        database_status: dbPool ? 'Connected ✅' : 'Not connected ❌',
         endpoints: {
             health: '/health',
             new_player: 'POST /api/player/new',
             get_player: 'GET /api/player/:passphrase',
-            generate_story: 'POST /api/story/generate',
-            process_choice: 'POST /api/choice/process',
-            switch_reality: 'POST /api/reality/switch',
-            dream_sharing: 'POST /api/dream/share',
-            add_choice: 'POST /api/choice/add'
+            generate_story: 'POST /api/story/generate'
         }
-    });
-});
-
-// Error handling
-app.use((err, req, res, next) => {
-    console.error('Error:', err);
-    res.status(500).json({
-        error: 'Internal server error',
-        message: 'Consciousness evolution continues despite temporary obstacles'
     });
 });
 
@@ -383,8 +270,7 @@ async function startServer() {
             console.log(`🌐 URL: ${process.env.RAILWAY_PUBLIC_DOMAIN || `http://localhost:${PORT}`}`);
             console.log(`🧠 Claude API: ${process.env.CLAUDE_API_KEY ? 'Connected' : 'Not configured'}`);
             console.log(`💾 Database: ${dbPool ? 'Connected' : 'Not configured'}`);
-            console.log(`⚡ Redis: ${redisClient ? 'Connected' : 'Not configured'}`);
-            console.log('🚀 Consciousness evolution platform with AI storytelling LIVE!');
+            console.log('🚀 Consciousness evolution platform LIVE!');
         });
     } catch (error) {
         console.error('❌ Failed to start server:', error);
@@ -392,14 +278,4 @@ async function startServer() {
     }
 }
 
-process.on('SIGTERM', async () => {
-    console.log('🏔️ WuTong Mountain server shutting down gracefully...');
-    if (dbPool) await dbPool.end();
-    if (redisClient) await redisClient.quit();
-    process.exit(0);
-});
-
 startServer().catch(console.error);
-
-// FORCE DEPLOY MARKER: 2025-07-18_23-12-55 - Claude AI Integration Active
-
