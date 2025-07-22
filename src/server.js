@@ -22,6 +22,28 @@ app.use('/api/', limiter);
 
 let dbPool;
 
+// Generate beautiful two-word passphrases
+function generateNicePassphrase() {
+    const adjectives = [
+        'golden', 'silver', 'crimson', 'azure', 'violet', 'emerald', 'mystic',
+        'ancient', 'radiant', 'serene', 'peaceful', 'wise', 'gentle', 'flowing',
+        'dancing', 'dreaming', 'luminous', 'sacred', 'eternal', 'cosmic',
+        'stellar', 'celestial', 'infinite', 'distant', 'quiet', 'harmonious'
+    ];
+
+    const nouns = [
+        'lion', 'eagle', 'dragon', 'phoenix', 'tiger', 'wolf', 'bear', 'owl',
+        'mountain', 'river', 'ocean', 'forest', 'star', 'moon', 'sun', 'wind',
+        'flame', 'crystal', 'lotus', 'sage', 'oracle', 'wanderer', 'spirit',
+        'temple', 'bridge', 'pathway', 'garden', 'meadow', 'storm', 'dawn'
+    ];
+
+    const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+    
+    return `${adjective}-${noun}`;
+}
+
 // FORCED DATABASE RECREATION FUNCTION - TIMESTAMP: 2025-07-21-17-06-22
 async function forceRecreateDatabase(pool) {
     console.log('🔥 FORCING DATABASE RECREATION...');
@@ -31,12 +53,12 @@ async function forceRecreateDatabase(pool) {
     try {
         console.log('📋 Checking current table...');
         try {
-            const currentColumns = await client.query(
-                SELECT column_name, data_type 
-                FROM information_schema.columns 
-                WHERE table_name = 'players' 
+            const currentColumns = await client.query(`
+                SELECT column_name, data_type
+                FROM information_schema.columns
+                WHERE table_name = 'players'
                 ORDER BY ordinal_position;
-            );
+            `);
             console.log('Current columns:', currentColumns.rows.map(r => r.column_name));
         } catch (err) {
             console.log('⚠️ Table check error (may not exist):', err.message);
@@ -47,7 +69,7 @@ async function forceRecreateDatabase(pool) {
         console.log('✅ Table dropped');
         
         console.log('🏗️ CREATING new table with ALL consciousness columns...');
-        await client.query(
+        await client.query(`
             CREATE TABLE players (
                 id SERIAL PRIMARY KEY,
                 passphrase VARCHAR(100) UNIQUE NOT NULL,
@@ -64,32 +86,32 @@ async function forceRecreateDatabase(pool) {
                 created_at TIMESTAMP DEFAULT NOW(),
                 last_active TIMESTAMP DEFAULT NOW()
             )
-        );
+        `);
         console.log('✅ NEW TABLE CREATED with ALL consciousness stats!');
         
-        const newColumns = await client.query(
+        const newColumns = await client.query(`
             SELECT column_name, data_type, column_default
             FROM information_schema.columns 
             WHERE table_name = 'players' 
             ORDER BY ordinal_position;
-        );
+        `);
         
         console.log('🔍 VERIFICATION - New table schema:');
         newColumns.rows.forEach(row => {
             const isConsciousnessStat = ['insight', 'presence', 'resolve', 'vigor', 'harmony'].includes(row.column_name);
             const marker = isConsciousnessStat ? '🧠' : '📋';
-            console.log(  ${marker} ${ow.column_name}: ${ow.data_type} (default: ${ow.column_default}));
+            console.log(`${marker} ${row.column_name}: ${row.data_type} (default: ${row.column_default})`);
         });
         
         console.log('🧪 Testing with sample insert...');
-        const testResult = await client.query(
+        const testResult = await client.query(`
             INSERT INTO players (passphrase) 
             VALUES ('database-fix-test-2025-07-21-17-06-22') 
             RETURNING id, insight, presence, resolve, vigor, harmony
-        );
+        `);
         console.log('✅ TEST INSERT SUCCESSFUL:', testResult.rows[0]);
         
-        await client.query(DELETE FROM players WHERE passphrase = 'database-fix-test-2025-07-21-17-06-22');
+        await client.query(`DELETE FROM players WHERE passphrase = 'database-fix-test-2025-07-21-17-06-22'`);
         console.log('✅ Test data cleaned up');
         console.log('🎉 DATABASE RECREATION COMPLETE! Build: 2025-07-21-17-06-22');
         
@@ -150,12 +172,13 @@ app.post('/api/player/new', async (req, res) => {
             });
         }
 
-        const passphrase = req.body.passphrase || consciousness-${Date.now()}-${Math.random().toString(36).substr(2, 9)};
+        // Use the passphrase from frontend, or generate a beautiful one
+        const passphrase = req.body.passphrase || generateNicePassphrase();
 
         console.log('🎮 Creating player with passphrase:', passphrase, '(Build: 2025-07-21-17-06-22)');
 
         const result = await dbPool.query(
-            INSERT INTO players (passphrase) VALUES () RETURNING *,
+            `INSERT INTO players (passphrase) VALUES ($1) RETURNING *`,
             [passphrase]
         );
 
@@ -190,7 +213,7 @@ app.get('/api/player/:passphrase', async (req, res) => {
         }
 
         const result = await dbPool.query(
-            'SELECT * FROM players WHERE passphrase = ',
+            'SELECT * FROM players WHERE passphrase = $1',
             [passphrase]
         );
 
@@ -234,11 +257,11 @@ async function startServer() {
         await initializeConnections();
 
         app.listen(PORT, '0.0.0.0', () => {
-            console.log(🏔️ WuTong Mountain server running on port ${PORT}`);
-            console.log(⏰ Build timestamp: 2025-07-21-17-06-22);
-            console.log(🌐 URL: ${process.env.RAILWAY_PUBLIC_DOMAIN || 'http://localhost:' + PORT}`);
-            console.log(💾 Database: ${dbPool ? 'Connected and FIXED' : 'Not configured'}`);
-            console.log('🎉 CONSCIOUSNESS EVOLUTION PLATFORM WITH FIXED DATABASE IS LIVE!');
+            console.log(`🏔️ WuTong Mountain server running on port ${PORT}`);
+            console.log(`⏰ Build timestamp: 2025-07-21-17-06-22`);
+            console.log(`🌐 URL: ${process.env.RAILWAY_PUBLIC_DOMAIN || 'http://localhost:' + PORT}`);
+            console.log(`💾 Database: ${dbPool ? 'Connected and FIXED' : 'Not configured'}`);
+            console.log('🎉 CONSCIOUSNESS EVOLUTION PLATFORM WITH BEAUTIFUL PASSPHRASES IS LIVE!');
         });
     } catch (error) {
         console.error('❌ Failed to start server:', error);
