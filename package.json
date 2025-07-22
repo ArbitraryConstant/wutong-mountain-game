@@ -7,23 +7,16 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "build": "echo 'No build step needed for Node.js backend'",
-    "test": "echo 'Tests coming soon'",
-    "deploy": "railway deploy"
+    "build": "echo 'No build step needed'"
   },
   "keywords": [
     "consciousness",
-    "evolution", 
+    "evolution",
     "game",
-    "spiritual",
-    "wutong",
-    "mountain",
     "claude",
-    "ai",
-    "api",
-    "backend"
+    "ai"
   ],
-  "author": "WuTong Mountain Consciousness Evolution Project",
+  "author": "WuTong Mountain Project",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
@@ -37,9 +30,6 @@
     "node-fetch": "^2.6.9",
     "@anthropic-ai/sdk": "^0.9.1",
     "express-rate-limit": "^7.1.5"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.2"
   },
   "engines": {
     "node": ">=18.0.0",
