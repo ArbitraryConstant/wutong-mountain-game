@@ -1,23 +1,28 @@
 ﻿# Dependencies
 node_modules/
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Environment variables
 .env
 .env.local
-.env.production
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Logs
-logs/
+logs
 *.log
 
 # Runtime data
-pids/
+pids
 *.pid
 *.seed
+*.pid.lock
 
 # Optional npm cache
-.npm/
+.npm
 
 # Railway
 .railway/
@@ -25,7 +30,12 @@ pids/
 # Editor files
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # OS files
 .DS_Store
 Thumbs.db
+
+# Backup files
+*.backup
