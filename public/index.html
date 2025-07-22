@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -522,7 +522,7 @@
         </div>
         
         <div class="scroll-indicator">
-            ↓ Begin Your Journey ↓
+            â†“ Begin Your Journey â†“
         </div>
     </section>
 
@@ -549,26 +549,26 @@
 
             <!-- Begin Evolution -->
             <div class="section-content fade-in">
-                <h2 class="section-title">🌟 Begin Evolution</h2>
+                <h2 class="section-title">ðŸŒŸ Begin Evolution</h2>
                 <p class="section-description">
                     Start your consciousness journey on utopian WuTong Mountain or visit the horror of WokeMound - the choice is yours.
                 </p>
                 
                 <ul class="feature-list">
                     <li class="feature-item">
-                        <span class="feature-icon">✦</span>
+                        <span class="feature-icon">âœ¦</span>
                         Dual reality experience
                     </li>
                     <li class="feature-item">
-                        <span class="feature-icon">✦</span>
+                        <span class="feature-icon">âœ¦</span>
                         AI-powered storytelling
                     </li>
                     <li class="feature-item">
-                        <span class="feature-icon">✦</span>
+                        <span class="feature-icon">âœ¦</span>
                         Community choice creation
                     </li>
                     <li class="feature-item">
-                        <span class="feature-icon">✦</span>
+                        <span class="feature-icon">âœ¦</span>
                         Dream sharing with others
                     </li>
                 </ul>
@@ -583,7 +583,7 @@
     <!-- Welcome Modal for New Players -->
     <div class="modal-overlay" id="welcomeModal">
         <div class="modal-content">
-            <h2 class="modal-title">🌟 Welcome to Your Journey!</h2>
+            <h2 class="modal-title">ðŸŒŸ Welcome to Your Journey!</h2>
             <p class="modal-description">Your consciousness evolution passphrase is:</p>
             <div class="modal-passphrase" id="modalPassphrase">SILVER MOON</div>
             <p class="modal-description">
@@ -593,11 +593,11 @@
             
             <div class="reality-choice">
                 <button class="reality-button wutong-button" onclick="startInReality('wutong')">
-                    🏔️ WuTong Mountain<br>
+                    ðŸ”ï¸ WuTong Mountain<br>
                     <small>(Utopian 2100)</small>
                 </button>
                 <button class="reality-button wokemound-button" onclick="startInReality('wokemound')">
-                    🌫️ WokeMound<br>
+                    ðŸŒ«ï¸ WokeMound<br>
                     <small>(Horror Mystery)</small>
                 </button>
             </div>
@@ -607,7 +607,7 @@
     <!-- Welcome Back Modal for Returning Players -->
     <div class="modal-overlay" id="welcomeBackModal">
         <div class="modal-content">
-            <h2 class="modal-title">🌟 Welcome Back!</h2>
+            <h2 class="modal-title">ðŸŒŸ Welcome Back!</h2>
             <div id="welcomeBackContent">
                 <!-- Dynamic content filled by JavaScript -->
             </div>
@@ -724,8 +724,11 @@
 
         // Convert API passphrase to display format
         function passphraseToDisplay(passphrase) {
-            return passphrase.replace(/-/g, ' ').toUpperCase();
-        }
+    if (!passphrase || typeof passphrase !== 'string') {
+        return 'anonymous-seeker';
+    }
+    return passphrase.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
 
         // Begin new consciousness journey
         async function beginNewJourney() {
@@ -893,3 +896,4 @@
     </script>
 </body>
 </html>
+
