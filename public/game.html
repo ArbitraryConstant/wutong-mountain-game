@@ -981,6 +981,9 @@
 
         // Generate basic story content (fallback)
         function generateBasicStory() {
+            // Always ensure loading is hidden when generating story
+            hideStoryLoading();
+            gameState.isLoading = false;
             const stories = {
                 wutong: {
                     location: "The Dream Circle Pavilion",
@@ -1101,7 +1104,7 @@
             return icons[type] || '⚡';
         }
 
-        // Select a choice - FIXED VERSION
+                // Select a choice - INSTANT FIXED VERSION
         async function selectChoice(choiceIndex, choiceData) {
             if (gameState.isLoading) return;
 
@@ -1117,31 +1120,8 @@
                     option.style.pointerEvents = 'none';
                 });
 
-                // Try API processing first, but don't block on it
-                let result;
-                try {
-                    const response = await fetch(`${BACKEND_URL}/api/choice/process`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            passphrase: gameState.passphrase,
-                            choice: choiceData
-                        })
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        result = data.result;
-                    }
-                } catch (apiError) {
-                    console.log('API choice processing failed, using local processing');
-                }
-
-                // Process locally if API failed
-                if (!result) {
-                    result = processChoiceLocally(choiceData);
-                }
-
+                // Process choice locally (skip API entirely for speed)
+                const result = processChoiceLocally(choiceData);
                 console.log('Choice result:', result);
 
                 // Update player stats if they changed
@@ -1166,13 +1146,18 @@
                     showSpiralPointGain(result.spiralPoints);
                 }
 
-                // Generate next story content after a delay
-                setTimeout(2000, 500);
+                // IMMEDIATE story generation - no delays
+                hideStoryLoading();
+                generateBasicStory();
 
             } catch (error) {
                 console.error('Choice processing error:', error);
-                // Still generate new story even if processing failed
-                setTimeout(() => { generateBasicStory(); }, 100);
+                // Always hide loading and generate story even on error
+                hideStoryLoading();
+                generateBasicStory();
+            } finally {
+                // Ensure loading state is cleared
+                gameState.isLoading = false;
             }
         }
 
