@@ -1,9 +1,8 @@
-{
+﻿{
   "name": "wutong-mountain-consciousness-evolution",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "WuTong Mountain - Consciousness Evolution Game with Claude AI Integration",
   "main": "src/server.js",
-  "type": "module",
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
@@ -27,8 +26,7 @@
     "pg": "^8.11.3",
     "redis": "^4.6.10",
     "dotenv": "^16.3.1",
-    "node-fetch": "^3.3.2",
-    "@anthropic-ai/sdk": "^0.24.3",
+    "node-fetch": "^2.7.0",
     "express-rate-limit": "^7.1.5"
   },
   "engines": {
