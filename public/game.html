@@ -784,9 +784,7 @@
         function loadInitialContent() {
             if (gameState.currentReality === 'wokemound') {
                 // Switch to WokeMound immediately if that was selected
-                setTimeout(() => {
-                    generateBasicStory();
-                }, 1000);
+                setTimeout(() => { generateBasicStory(); }, 100);
             } else {
                 // Default WuTong Mountain content
                 generateBasicStory();
@@ -836,7 +834,7 @@
                 }).catch(error => console.log('API call failed, continuing with local state'));
 
                 // Generate new story for this reality
-                await new Promise(resolve => setTimeout(resolve, 1500)); // Brief pause for effect
+                await new Promise(resolve => setTimeout(resolve, 300)); // Brief pause for effect
                 generateBasicStory();
 
             } catch (error) {
@@ -1169,16 +1167,12 @@
                 }
 
                 // Generate next story content after a delay
-                setTimeout(async () => {
-                    generateBasicStory(); // Always generate new content after choice
-                }, 2000);
+                setTimeout(2000, 500);
 
             } catch (error) {
                 console.error('Choice processing error:', error);
                 // Still generate new story even if processing failed
-                setTimeout(() => {
-                    generateBasicStory();
-                }, 1000);
+                setTimeout(() => { generateBasicStory(); }, 100);
             }
         }
 
@@ -1228,7 +1222,7 @@
 
             // Animate number
             const startValue = parseInt(valueElement.textContent);
-            animateNumber(valueElement, startValue, newValue, 1000);
+            animateNumber(valueElement, startValue, newValue, 600);
 
             // Animate bar
             setTimeout(() => {
@@ -1237,9 +1231,7 @@
 
             // Highlight effect
             valueElement.style.color = '#2ecc71';
-            setTimeout(() => {
-                valueElement.style.color = '#f0c674';
-            }, 2000);
+            setTimeout(2000, 500);
         }
 
         // Animate number change
@@ -1282,11 +1274,7 @@
             display.textContent = `+${points} Spiral Points!`;
             document.body.appendChild(display);
 
-            setTimeout(() => {
-                if (document.body.contains(display)) {
-                    document.body.removeChild(display);
-                }
-            }, 3000);
+            setTimeout(2000, 500);
         }
 
         // Loading states
