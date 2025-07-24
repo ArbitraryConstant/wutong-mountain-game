@@ -1,36 +1,38 @@
-{
-  "name": "wutong-mountain-consciousness-evolution",
-  "version": "2.1.0",
-  "description": "WuTong Mountain - Consciousness Evolution Game with Claude AI Integration",
-  "main": "src/server.js",
-  "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
-    "build": "echo 'No build step needed'"
-  },
-  "keywords": [
-    "consciousness",
-    "evolution",
-    "game",
-    "claude",
-    "ai"
-  ],
-  "author": "WuTong Mountain Project",
-  "license": "MIT",
-  "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "helmet": "^7.1.0",
-    "compression": "^1.7.4",
-    "morgan": "^1.10.0",
-    "pg": "^8.11.3",
-    "redis": "^4.6.10",
-    "dotenv": "^16.3.1",
-    "node-fetch": "^2.7.0",
-    "express-rate-limit": "^7.1.5"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
-  }
+﻿{
+    "scripts":  {
+                    "build":  "echo \u0027No build step needed\u0027",
+                    "dev":  "node --watch src/server.js",
+                    "start":  "node src/server.js"
+                },
+    "description":  "WuTong Mountain - Consciousness Evolution Game with Claude AI Integration",
+    "type":  "module",
+    "version":  "2.1.0",
+    "author":  "WuTong Mountain Project",
+    "engines":  {
+                    "node":  "\u003e=18.0.0",
+                    "npm":  "\u003e=8.0.0"
+                },
+    "name":  "wutong-mountain-consciousness-evolution",
+    "main":  "src/server.js",
+    "dependencies":  {
+                         "pg":  "^8.11.3",
+                         "compression":  "^1.7.4",
+                         "node-fetch":  "^3.3.2",
+                         "@anthropic-ai/sdk":  "^0.24.3",
+                         "express":  "^4.18.2",
+                         "redis":  "^4.6.10",
+                         "dotenv":  "^16.3.1",
+                         "cors":  "^2.8.5",
+                         "express-rate-limit":  "^7.1.5",
+                         "morgan":  "^1.10.0",
+                         "helmet":  "^7.1.0"
+                     },
+    "license":  "MIT",
+    "keywords":  [
+                     "consciousness",
+                     "evolution",
+                     "game",
+                     "claude",
+                     "ai"
+                 ]
 }
