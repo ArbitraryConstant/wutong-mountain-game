@@ -1,23 +1,23 @@
-﻿{
+{
     "scripts":  {
-                    "build":  "echo \u0027No build step needed\u0027",
+                    "build":  "echo  [char]::ConvertFromUtf32([convert]::ToInt32($args[0].Groups[1].Value, 16)) No build step needed [char]::ConvertFromUtf32([convert]::ToInt32($args[0].Groups[1].Value, 16)) ",
                     "dev":  "node --watch src/server.js",
                     "start":  "node src/server.js"
                 },
     "description":  "WuTong Mountain - Consciousness Evolution Game with Claude AI Integration",
-    "type":  "module",
+    "type":  "commonjs",
     "version":  "2.1.0",
     "author":  "WuTong Mountain Project",
     "engines":  {
-                    "node":  "\u003e=18.0.0",
-                    "npm":  "\u003e=8.0.0"
+                    "node":  " [char]::ConvertFromUtf32([convert]::ToInt32($args[0].Groups[1].Value, 16)) =18.0.0",
+                    "npm":  " [char]::ConvertFromUtf32([convert]::ToInt32($args[0].Groups[1].Value, 16)) =8.0.0"
                 },
     "name":  "wutong-mountain-consciousness-evolution",
     "main":  "src/server.js",
     "dependencies":  {
                          "pg":  "^8.11.3",
                          "compression":  "^1.7.4",
-                         "node-fetch":  "^3.3.2",
+                         "node-fetch":  "^2.7.0",
                          "@anthropic-ai/sdk":  "^0.24.3",
                          "express":  "^4.18.2",
                          "redis":  "^4.6.10",
