@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,7 +6,7 @@
     <title>WuTong Mountain - Consciousness Evolution Game</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
             font-family: 'Georgia', serif;
             color: #e8e8e8;
@@ -534,7 +534,7 @@
                 grid-template-columns: 1fr 1fr;
                 gap: 15px;
             }
-            
+
             .story-panel {
                 order: 1;
                 min-height: 60vh;
@@ -545,16 +545,24 @@
             .left-panel, .right-panel {
                 grid-template-columns: 1fr;
             }
-            
+
             .game-layout {
                 padding: 10px;
                 gap: 10px;
             }
-            
+
             .story-panel {
                 padding: 20px;
                 min-height: 50vh;
             }
+        }
+
+        /* Spiral point animation */
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
         }
     </style>
 </head>
@@ -581,7 +589,7 @@
                 <!-- Player Stats -->
                 <div class="stats-panel">
                     <h3 class="stats-title">Consciousness Development</h3>
-                    
+
                     <div class="stat-item">
                         <span class="stat-name">Insight</span>
                         <span class="stat-value" id="insightValue">35</span>
@@ -589,7 +597,7 @@
                     <div class="stat-bar">
                         <div class="stat-fill" id="insightBar" style="width: 35%"></div>
                     </div>
-                    
+
                     <div class="stat-item">
                         <span class="stat-name">Presence</span>
                         <span class="stat-value" id="presenceValue">35</span>
@@ -597,7 +605,7 @@
                     <div class="stat-bar">
                         <div class="stat-fill" id="presenceBar" style="width: 35%"></div>
                     </div>
-                    
+
                     <div class="stat-item">
                         <span class="stat-name">Resolve</span>
                         <span class="stat-value" id="resolveValue">35</span>
@@ -605,7 +613,7 @@
                     <div class="stat-bar">
                         <div class="stat-fill" id="resolveBar" style="width: 35%"></div>
                     </div>
-                    
+
                     <div class="stat-item">
                         <span class="stat-name">Vigor</span>
                         <span class="stat-value" id="vigorValue">35</span>
@@ -613,7 +621,7 @@
                     <div class="stat-bar">
                         <div class="stat-fill" id="vigorBar" style="width: 35%"></div>
                     </div>
-                    
+
                     <div class="stat-item">
                         <span class="stat-name">Harmony</span>
                         <span class="stat-value" id="harmonyValue">35</span>
@@ -666,7 +674,7 @@
                     <div class="choice-option" onclick="selectChoice(1)" data-mechanics="PRESENCE + HARMONY">
                         <div class="choice-text">Explore the meditation gardens and observe the community</div>
                         <div class="choice-meta">
-                            <span>🧘 Observation</span>
+                            <span>🧘‍♀️ Observation</span>
                             <span>PRESENCE + HARMONY</span>
                         </div>
                     </div>
@@ -702,17 +710,17 @@
                 <!-- Recent Memories -->
                 <div class="memory-panel">
                     <h3 class="memory-title">Memory Fragments</h3>
-                    
+
                     <div class="memory-item" onclick="viewMemory(1)">
                         <div class="memory-date">Journey Start</div>
                         <div class="memory-text">Arrived at WuTong Mountain consciousness evolution system</div>
                     </div>
-                    
+
                     <div class="memory-item" onclick="viewMemory(2)">
                         <div class="memory-date">System Briefing</div>
                         <div class="memory-text">Learned about dual reality healing through service to others</div>
                     </div>
-                    
+
                     <div class="memory-item" onclick="viewMemory(3)">
                         <div class="memory-date">Initial Assessment</div>
                         <div class="memory-text">Consciousness stats baseline established for growth tracking</div>
@@ -740,14 +748,15 @@
 
     <script>
         // Backend URL
-        const BACKEND_URL = window.location.origin;
+        const BACKEND_URL = 'https://wutong-mountain-game-production.up.railway.app';
 
         // Game state
         let gameState = {
             currentReality: 'wutong',
             passphrase: 'demo-player',
             player: null,
-            isLoading: false
+            isLoading: false,
+            currentChoices: []
         };
 
         // Initialize from URL parameters or use demo
@@ -755,24 +764,40 @@
             const params = new URLSearchParams(window.location.search);
             gameState.passphrase = params.get('passphrase') || 'demo-player';
             gameState.currentReality = params.get('reality') || 'wutong';
-            
+
             console.log('Initializing game with:', gameState);
-            
+
             // Load player data if available
             loadPlayerData();
-            
+
             // Create particles
             createParticles();
-            
+
             // Set initial reality state
             updateRealityDisplay();
+
+            // Load initial story content based on reality
+            loadInitialContent();
+        }
+
+        // Load initial content based on selected reality
+        function loadInitialContent() {
+            if (gameState.currentReality === 'wokemound') {
+                // Switch to WokeMound immediately if that was selected
+                setTimeout(() => {
+                    generateBasicStory();
+                }, 1000);
+            } else {
+                // Default WuTong Mountain content
+                generateBasicStory();
+            }
         }
 
         // Create reality-aware particles
         function createParticles() {
             const container = document.getElementById('particles');
             container.innerHTML = ''; // Clear existing
-            
+
             for (let i = 0; i < 15; i++) {
                 const particle = document.createElement('div');
                 particle.className = `particle ${gameState.currentReality}`;
@@ -789,40 +814,33 @@
         // Switch between realities
         async function switchReality() {
             if (gameState.isLoading) return;
-            
+
             const newReality = gameState.currentReality === 'wutong' ? 'wokemound' : 'wutong';
-            
+
             try {
                 gameState.isLoading = true;
                 showStoryLoading('Transferring consciousness...');
-                
-                // API call to switch reality
-                const response = await fetch(`${BACKEND_URL}/api/reality/switch`, {
+
+                // Update game state immediately for responsive UI
+                gameState.currentReality = newReality;
+                updateRealityDisplay();
+
+                // Try API call but don't wait for it
+                fetch(`${BACKEND_URL}/api/reality/switch`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         passphrase: gameState.passphrase,
                         target_reality: newReality
                     })
-                });
+                }).catch(error => console.log('API call failed, continuing with local state'));
 
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Reality switch response:', data);
-                }
-
-                // Update game state
-                gameState.currentReality = newReality;
-                updateRealityDisplay();
-                
                 // Generate new story for this reality
-                await generateNewStory();
-                
+                await new Promise(resolve => setTimeout(resolve, 1500)); // Brief pause for effect
+                generateBasicStory();
+
             } catch (error) {
                 console.error('Reality switch error:', error);
-                // Continue with local state change
-                gameState.currentReality = newReality;
-                updateRealityDisplay();
                 generateBasicStory();
             } finally {
                 gameState.isLoading = false;
@@ -912,7 +930,7 @@
             // Update consciousness
             document.getElementById('consciousnessLevel').textContent = player.consciousness_level;
             document.getElementById('spiralPoints').textContent = `${player.spiral_points} Spiral Points`;
-            
+
             const levelNames = {
                 0: "Unconscious", 1: "Awakening", 2: "Recognition", 3: "Courage",
                 4: "Integration", 5: "Mastery", 6: "Responsibility", 7: "Mystery"
@@ -923,32 +941,37 @@
         // Generate new story content
         async function generateNewStory() {
             if (gameState.isLoading) return;
-            
+
             try {
                 gameState.isLoading = true;
                 showStoryLoading('Generating consciousness evolution content...');
-                
-                const response = await fetch(`${BACKEND_URL}/api/story/generate`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        passphrase: gameState.passphrase,
-                        reality: gameState.currentReality,
-                        previous_choice: null
-                    })
-                });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.story) {
-                        updateStoryDisplay(data);
-                    } else {
-                        generateBasicStory();
+                // Try API first, but fallback to local generation
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/story/generate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            passphrase: gameState.passphrase,
+                            reality: gameState.currentReality,
+                            previous_choice: null
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.story) {
+                            updateStoryDisplay(data);
+                            return;
+                        }
                     }
-                } else {
-                    generateBasicStory();
+                } catch (apiError) {
+                    console.log('API story generation failed, using local fallback');
                 }
-                
+
+                // Fallback to local generation
+                generateBasicStory();
+
             } catch (error) {
                 console.error('Story generation error:', error);
                 generateBasicStory();
@@ -1035,6 +1058,9 @@
             document.getElementById('storyContent').textContent = data.story.text || "";
             document.getElementById('choiceCount').textContent = `${data.choices.length} choices available`;
 
+            // Store current choices
+            gameState.currentChoices = data.choices;
+
             // Clear existing choices
             const choicesSection = document.querySelector('.choices-section');
             const existingChoices = choicesSection.querySelectorAll('.choice-option');
@@ -1055,7 +1081,7 @@
                         <span>${choice.mechanics || 'Unknown'}</span>
                     </div>
                 `;
-                
+
                 choicesSection.appendChild(choiceElement);
             });
         }
@@ -1077,68 +1103,82 @@
             return icons[type] || '⚡';
         }
 
-        // Select a choice
+        // Select a choice - FIXED VERSION
         async function selectChoice(choiceIndex, choiceData) {
             if (gameState.isLoading) return;
-            
+
+            console.log('Choice selected:', choiceIndex, choiceData);
+
             try {
                 gameState.isLoading = true;
                 showStoryLoading('Processing your choice...');
-                
+
                 // Animate choice selection
                 document.querySelectorAll('.choice-option').forEach(option => {
                     option.style.opacity = '0.5';
                     option.style.pointerEvents = 'none';
                 });
 
-                // Process choice through API if available
-                const response = await fetch(`${BACKEND_URL}/api/choice/process`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        passphrase: gameState.passphrase,
-                        choice: choiceData
-                    })
-                });
-
+                // Try API processing first, but don't block on it
                 let result;
-                if (response.ok) {
-                    const data = await response.json();
-                    result = data.result;
-                } else {
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/choice/process`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            passphrase: gameState.passphrase,
+                            choice: choiceData
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        result = data.result;
+                    }
+                } catch (apiError) {
+                    console.log('API choice processing failed, using local processing');
+                }
+
+                // Process locally if API failed
+                if (!result) {
                     result = processChoiceLocally(choiceData);
                 }
 
+                console.log('Choice result:', result);
+
                 // Update player stats if they changed
-                if (result.statsChanged) {
+                if (result.statsChanged && gameState.player) {
                     Object.keys(result.statsChanged).forEach(stat => {
                         const currentValue = gameState.player.stats[stat];
                         const change = result.statsChanged[stat];
                         const newValue = Math.min(100, Math.max(0, currentValue + change));
                         gameState.player.stats[stat] = newValue;
-                        
+
                         // Animate stat change
                         animateStatChange(stat, newValue);
                     });
                 }
 
                 // Update spiral points
-                if (result.spiralPoints) {
+                if (result.spiralPoints && gameState.player) {
                     gameState.player.spiral_points += result.spiralPoints;
                     document.getElementById('spiralPoints').textContent = `${gameState.player.spiral_points} Spiral Points`;
-                    
+
                     // Show spiral point gain
                     showSpiralPointGain(result.spiralPoints);
                 }
 
-                // Generate next story content
+                // Generate next story content after a delay
                 setTimeout(async () => {
-                    await generateNewStory();
+                    generateBasicStory(); // Always generate new content after choice
                 }, 2000);
 
             } catch (error) {
                 console.error('Choice processing error:', error);
-                generateBasicStory();
+                // Still generate new story even if processing failed
+                setTimeout(() => {
+                    generateBasicStory();
+                }, 1000);
             }
         }
 
@@ -1185,16 +1225,16 @@
         function animateStatChange(stat, newValue) {
             const valueElement = document.getElementById(`${stat}Value`);
             const barElement = document.getElementById(`${stat}Bar`);
-            
+
             // Animate number
             const startValue = parseInt(valueElement.textContent);
             animateNumber(valueElement, startValue, newValue, 1000);
-            
+
             // Animate bar
             setTimeout(() => {
                 barElement.style.width = newValue + '%';
             }, 500);
-            
+
             // Highlight effect
             valueElement.style.color = '#2ecc71';
             setTimeout(() => {
@@ -1206,18 +1246,18 @@
         function animateNumber(element, start, end, duration) {
             const range = end - start;
             const startTime = performance.now();
-            
+
             function updateNumber(currentTime) {
                 const elapsed = currentTime - startTime;
                 const progress = Math.min(elapsed / duration, 1);
                 const current = Math.round(start + (range * progress));
                 element.textContent = current;
-                
+
                 if (progress < 1) {
                     requestAnimationFrame(updateNumber);
                 }
             }
-            
+
             requestAnimationFrame(updateNumber);
         }
 
@@ -1241,9 +1281,11 @@
             `;
             display.textContent = `+${points} Spiral Points!`;
             document.body.appendChild(display);
-            
+
             setTimeout(() => {
-                document.body.removeChild(display);
+                if (document.body.contains(display)) {
+                    document.body.removeChild(display);
+                }
             }, 3000);
         }
 
@@ -1261,18 +1303,23 @@
 
         // Action buttons
         function viewMemory(memoryId) {
-            alert(`Memory ${memoryId}: This would show detailed memory information and consciousness insights.`);
+            const memories = [
+                "Journey Start: You arrived at the consciousness evolution platform, ready to explore both realities and grow through service to others.",
+                "System Briefing: Understanding the dual nature of healing - experiencing trauma in WokeMound to build empathy, healing others in WuTong Mountain.",
+                "Initial Assessment: Your consciousness stats were established as baseline measurements for tracking spiritual growth through choices."
+            ];
+            alert(`Memory ${memoryId}: ${memories[memoryId - 1] || 'Memory fragment not found.'}`);
         }
 
         function accessMemoryArchive() {
-            alert('Memory Archive: This would open the full memory tracking system with consciousness pattern recognition.');
+            alert('Memory Archive: This would open the full memory tracking system with consciousness pattern recognition and growth insights.');
         }
 
         function dreamSharing() {
             if (gameState.player && gameState.player.consciousness_level >= 2) {
-                alert('Dream Sharing: This would open the system for helping heal others\' nightmare realities.');
+                alert('Dream Sharing: This would connect you with others healing from nightmare realities, allowing you to guide their transformation.');
             } else {
-                alert('Dream Sharing requires Consciousness Level 2 (Recognition) or higher. Continue your evolution!');
+                alert('Dream Sharing requires Consciousness Level 2 (Recognition) or higher. Continue your evolution through service to others!');
             }
         }
 
@@ -1281,18 +1328,6 @@
                 window.location.href = '/';
             }
         }
-
-        // Add CSS animation for spiral point display
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fadeInOut {
-                0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-                20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-                80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-                100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
-            }
-        `;
-        document.head.appendChild(style);
 
         // Initialize game when page loads
         document.addEventListener('DOMContentLoaded', function() {
