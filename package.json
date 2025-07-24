@@ -1,6 +1,6 @@
 {
     "scripts":  {
-                    "build":  "echo \u0027Ready to deploy\u0027",
+                    "build":  "echo 'Ready to deploy'",
                     "dev":  "node --watch src/server.js",
                     "start":  "node src/server.js"
                 },
@@ -9,8 +9,8 @@
     "version":  "2.1.0",
     "author":  "WuTong Mountain Project",
     "engines":  {
-                    "node":  "\u003e=18.0.0",
-                    "npm":  "\u003e=8.0.0"
+                    "node":  ">=18.0.0",
+                    "npm":  ">=8.0.0"
                 },
     "name":  "wutong-mountain-consciousness-evolution",
     "main":  "src/server.js",
