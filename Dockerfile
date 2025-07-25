@@ -14,4 +14,4 @@ COPY . .
 EXPOSE 3000
 
 # Command to run the application
-CMD ["node", "--experimental-specifier-resolution=node", "src/server.js"]
+CMD ["node", "src/server.js"]
