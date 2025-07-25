@@ -3,7 +3,12 @@
 # Create app directory
 WORKDIR /app
 
-# Install app dependencies
+# Install system dependencies
+RUN apk add --no-cache \
+    nodejs \
+    npm
+
+# Copy package files
 COPY package*.json ./
 
 # Install dependencies
