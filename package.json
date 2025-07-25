@@ -1,31 +1,32 @@
 {
     "scripts":  {
-                    "build":  "echo 'Ready to deploy'",
+                    "test":  "echo \u0027No tests configured yet\u0027",
+                    "build":  "echo \u0027Preparing for deployment\u0027",
                     "dev":  "node --watch src/server.js",
                     "start":  "node src/server.js"
                 },
     "description":  "WuTong Mountain - Consciousness Evolution Game with Claude AI Integration",
     "type":  "commonjs",
     "version":  "2.1.0",
-    "author":  "WuTong Mountain Project",
+    "author":  "WuTong Mountain Project Team",
     "engines":  {
-                    "node":  ">=18.0.0",
-                    "npm":  ">=8.0.0"
+                    "node":  "\u003e=18.0.0",
+                    "npm":  "\u003e=8.0.0"
                 },
-    "name":  "wutong-mountain-consciousness-evolution",
+    "name":  "wutong-mountain-game",
     "main":  "src/server.js",
     "dependencies":  {
-                         "pg":  "^8.11.3",
                          "compression":  "^1.7.4",
-                         "node-fetch":  "^2.7.0",
+                         "helmet":  "^7.1.0",
                          "@anthropic-ai/sdk":  "^0.24.3",
                          "express":  "^4.18.2",
                          "redis":  "^4.6.10",
                          "dotenv":  "^16.3.1",
                          "cors":  "^2.8.5",
+                         "node-fetch":  "^2.7.0",
                          "express-rate-limit":  "^7.1.5",
                          "morgan":  "^1.10.0",
-                         "helmet":  "^7.1.0"
+                         "pg":  "^8.11.3"
                      },
     "license":  "MIT",
     "keywords":  [
@@ -33,6 +34,7 @@
                      "evolution",
                      "game",
                      "claude",
-                     "ai"
+                     "ai",
+                     "spiritual-technology"
                  ]
 }
