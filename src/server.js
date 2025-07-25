@@ -37,7 +37,7 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 // Start server
 const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(Server running on port ); // Fixed console.log
+    console.log(Server running on port ); // Correct template literal
 });
 
 // Graceful shutdown
