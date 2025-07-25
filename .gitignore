@@ -1,8 +1,5 @@
-﻿# Dependencies
+﻿# Dependency directories
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Environment variables
 .env
@@ -14,28 +11,29 @@ yarn-error.log*
 # Logs
 logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
+# Build output
+dist/
+build/
 
-# Optional npm cache
-.npm
-
-# Railway
+# Railway specific
 .railway/
 
-# Editor files
+# Editor directories and files
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
-# OS files
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-
-# Backup files
-*.backup
