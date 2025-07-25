@@ -10,3 +10,4 @@ restartPolicyMaxRetries = 10
 [[services]]
 name = "wutong-mountain-backend"
 source = "."
+port = 3000

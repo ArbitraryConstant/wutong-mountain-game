@@ -7,13 +7,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Logging middleware
+app.use((req, res, next) => {
+    console.log([]  );
+    next();
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.status(200).json({
         status: 'healthy',
         message: 'WuTong Mountain game backend is running',
         timestamp: new Date().toISOString(),
-        version: '2.0.0'
+        version: '2.0.0',
+        environment: process.env.NODE_ENV || 'development'
     });
 });
 
@@ -29,7 +36,7 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 // Start server
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(Server running on port );
     console.log(Environment: );
 });
