@@ -1,13 +1,12 @@
 ﻿{
   "name": "wutong-mountain-consciousness-evolution",
   "version": "2.0.0",
-  "description": "WuTong Mountain - Consciousness Evolution Game with Claude AI Integration",
+  "description": "WuTong Mountain - Consciousness Evolution Game",
   "main": "src/server.js",
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
-    "build": "echo 'No build step needed'"
+    "dev": "node --watch src/server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -15,6 +14,6 @@
     "pg": "^8.11.3"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=18.0.0"
   }
 }
