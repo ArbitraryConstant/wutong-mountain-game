@@ -1,7 +1,5 @@
-[build]
-builder = "nixpacks"
-buildCommand = "npm install"
-startCommand = "npm start"
+﻿[build]
+builder = "NIXPACKS"
 
 [deploy]
 healthcheckPath = "/health"
@@ -11,56 +9,4 @@ restartPolicyMaxRetries = 10
 
 [[services]]
 name = "wutong-mountain-backend"
-type = "web"
-runtime = "nodejs"
-plan = "starter"
-region = "nearest"
-
-[[services]]
-name = "wutong-postgres"
-type = "postgres"
-plan = "starter"
-region = "nearest"
-
-[[services]]
-name = "wutong-redis"
-type = "redis"
-plan = "starter"
-region = "nearest"
-
-[env]
-PORT = "3000"
-NODE_ENV = "production"
-CLAUDE_MODEL = "claude-3-sonnet-20240229"
-CORS_ORIGIN = "@{wutong-mountain-backend.RAILWAY_PUBLIC_DOMAIN}"
-PUBLIC_MEMORY_DOMAIN = "@{wutong-mountain-backend.RAILWAY_PUBLIC_DOMAIN}"
-RAILWAY_BACKEND_URL = "@{wutong-mountain-backend.RAILWAY_PUBLIC_DOMAIN}"
-
-DATABASE_URL = "@{wutong-postgres.DATABASE_URL}"
-POSTGRES_HOST = "@{wutong-postgres.HOSTNAME}"
-POSTGRES_PORT = "@{wutong-postgres.PORT}"
-POSTGRES_DB = "@{wutong-postgres.DATABASE}"
-POSTGRES_USER = "@{wutong-postgres.USERNAME}"
-POSTGRES_PASSWORD = "@{wutong-postgres.PASSWORD}"
-
-REDIS_URL = "@{wutong-redis.REDIS_URL}"
-REDIS_HOST = "@{wutong-redis.HOSTNAME}"
-REDIS_PORT = "@{wutong-redis.PORT}"
-REDIS_PASSWORD = "@{wutong-redis.PASSWORD}"
-
-# Optional security settings
-API_SECRET_KEY = "@{wutong-mountain-backend.API_SECRET}"
-JWT_SECRET = "@{wutong-mountain-backend.JWT_SECRET}"
-
-# Feature flags
-FEATURE_STORY_GENERATION = "true"
-FEATURE_REALITY_SWITCHING = "true"
-FEATURE_PLAYER_CREATION = "true"
-
-# Rate limiting
-RATE_LIMIT_WINDOW_MS = "900000"
-RATE_LIMIT_MAX_REQUESTS = "100"
-
-# Logging
-LOG_LEVEL = "info"
-ERROR_REPORTING_ENABLED = "false"
+source = "."
