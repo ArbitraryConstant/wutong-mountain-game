@@ -1,0 +1,885 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WuTong Mountain - Consciousness Evolution</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Georgia', serif;
+            color: #e8e8e8;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            background: #1a2332; /* Fallback background color */
+            
+            /* Ensure page starts at top */
+            scroll-snap-type: y mandatory;
+        }
+
+        /* Hero Section with Alternating Backgrounds */
+        .hero-section {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            scroll-snap-align: start;
+        }
+
+        .background-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transition: opacity 3s ease-in-out;
+        }
+
+        .background-layer.active {
+            opacity: 1;
+        }
+
+        .bg-wutong {
+            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9InNreUdyYWRpZW50IiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNhMGU0Y2IiLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNWZjOTkzIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjc2t5R3JhZGllbnQpIi8+CjxwYXRoIGQ9Ik01MCAyMDAgUSAyMDAgMTUwIDM1MCAyMDAgTCAzNTAgNDAwIFEgMjAwIDM1MCA1MCA0MDAgWiIgZmlsbD0iIzZiY2I5OSIgb3BhY2l0eT0iMC43Ii8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjI1MCIgcj0iMjAiIGZpbGw9IiM0ZGI3NzkiIG9wYWNpdHk9IjAuNiIvPgo8Y2lyY2xlIGN4PSIzMDAiIGN5PSIzMDAiIHI9IjE1IiBmaWxsPSIjNGRiNzc5IiBvcGFjaXR5PSIwLjYiLz4KPHBhdGggZD0iTTUwIDUwMCBRIDIwMCA0NTAgMzUwIDUwMCBMIDM1MCA2MDAgTCA1MCA2MDAgWiIgZmlsbD0iIzRkYjc3OSIvPjwvc3ZnPg==');
+        }
+
+        .bg-wokemound {
+            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImRhcmtHcmFkaWVudCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgo8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjNGMyYjI0Ii8+CjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjMzQxZjFhIi8+CjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzFhMGUwOSIvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI2RhcmtHcmFkaWVudCkiLz4KPHBhdGggZD0iTTUwIDMwMCBMIDEwMCAyNTAgTCAxNTAgMzAwIEwgMjAwIDI1MCBMIDI1MCAzMDAgTCAzMDAgMjUwIEwgMzUwIDMwMCBMIDM1MCA2MDAgTCA1MCA2MDAgWiIgZmlsbD0iIzI2MTYxMiIgb3BhY2l0eT0iMC44Ii8+CjxyZWN0IHg9IjgwIiB5PSIzNTAiIHdpZHRoPSIyMCIgaGVpZ2h0PSI0MCIgZmlsbD0iI2ZmYTUwMCIgb3BhY2l0eT0iMC44Ii8+CjxyZWN0IHg9IjMyMCIgeT0iMzgwIiB3aWR0aD0iMTUiIGhlaWdodD0iMzAiIGZpbGw9IiNmZmE1MDAiIG9wYWNpdHk9IjAuOCIvPjwvc3ZnPg==');
+        }
+
+        /* Overlay for readability */
+        .hero-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, 
+                rgba(0,0,0,0.1) 0%, 
+                rgba(0,0,0,0.3) 50%, 
+                rgba(0,0,0,0.6) 100%);
+            z-index: 1;
+        }
+
+        /* Hero content */
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 0 20px;
+            opacity: 0;
+            animation: heroFadeIn 2s ease-out 1s forwards;
+        }
+
+        @keyframes heroFadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Reality titles that alternate with backgrounds */
+        .reality-title {
+            font-size: 3.2em;
+            font-weight: bold;
+            text-shadow: 3px 3px 8px rgba(0,0,0,0.8);
+            margin-bottom: 20px;
+            opacity: 0;
+            transition: all 1s ease-in-out;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .reality-title.active {
+            opacity: 1;
+        }
+
+        .wutong-title {
+            color: #4db779;
+            text-shadow: 3px 3px 8px rgba(0,0,0,0.8), 0 0 20px rgba(77, 183, 121, 0.3);
+        }
+
+        .wokemound-title {
+            color: #ffc785;
+            text-shadow: 3px 3px 8px rgba(0,0,0,0.8), 0 0 20px rgba(255, 199, 133, 0.3);
+        }
+
+        .hero-subtitle {
+            font-size: 1.4em;
+            opacity: 0.9;
+            font-style: italic;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            margin-top: 10px;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9em;
+            animation: bounce 2s infinite;
+            z-index: 2;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+            40% { transform: translateX(-50%) translateY(-10px); }
+            60% { transform: translateX(-50%) translateY(-5px); }
+        }
+
+        /* Content sections */
+        .content-section {
+            min-height: 50vh;
+            padding: 40px 20px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dual-section {
+            min-height: 100vh;
+            padding: 60px 20px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dual-content {
+            max-width: 1000px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .dual-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+
+        .section-content {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 25px;
+            padding: 35px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            transition: all 0.5s ease;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .section-content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Dynamic background for content sections */
+        .content-section::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            z-index: -1;
+            opacity: 0.8;
+            transition: opacity 0.5s ease;
+        }
+
+        .wutong-bg::before {
+            background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9InNreUdyYWRpZW50IiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNhMGU0Y2IiLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNWZjOTkzIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjc2t5R3JhZGllbnQpIi8+CjxwYXRoIGQ9Ik01MCAyMDAgUSAyMDAgMTUwIDM1MCAyMDAgTCAzNTAgNDAwIFEgMjAwIDM1MCA1MCA0MDAgWiIgZmlsbD0iIzZiY2I5OSIgb3BhY2l0eT0iMC43Ci8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjI1MCIgcj0iMjAiIGZpbGw9IiM0ZGI3NzkiIG9wYWNpdHk9IjAuNiIvPgo8Y2lyY2xlIGN4PSIzMDAiIGN5PSIzMDAiIHI9IjE1IiBmaWxsPSIjNGRiNzc5IiBvcGFjaXR5PSIwLjYiLz4KPHBhdGggZD0iTTUwIDUwMCBRIDIwMCA0NTAgMzUwIDUwMCBMIDM1MCA2MDAgTCA1MCA2MDAgWiIgZmlsbD0iIzRkYjc3OSIvPjwvc3ZnPg==');
+        }
+
+        .wokemound-bg::before {
+            background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImRhcmtHcmFkaWVudCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgo8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjNGMyYjI0Ii8+CjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjMzQxZjFhIi8+CjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzFhMGUwOSIvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI2RhcmtHcmFkaWVudCkiLz4KPHBhdGggZD0iTTUwIDMwMCBMIDEwMCAyNTAgTCAxNTAgMzAwIEwgMjAwIDI1MCBMIDI1MCAzMDAgTCAzMDAgMjUwIEwgMzUwIDMwMCBMIDM1MCA2MDAgTCA1MCA2MDAgWiIgZmlsbD0iIzI2MTYxMiIgb3BhY2l0eT0iMC44Ii8+CjxyZWN0IHg9IjgwIiB5PSIzNTAiIHdpZHRoPSIyMCIgaGVpZ2h0PSI0MCIgZmlsbD0iI2ZmYTUwMCIgb3BhY2l0eT0iMC44Ii8+CjxyZWN0IHg9IjMyMCIgeT0iMzgwIiB3aWR0aD0iMTUiIGhlaWdodD0iMzAiIGZpbGw9IiNmZmE1MDAiIG9wYWNpdHk9IjAuOCIvPjwvc3ZnPg==');
+        }
+
+        /* Section titles */
+        .section-title {
+            font-size: 2em;
+            color: #f0c674;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
+
+        .section-description {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            text-align: center;
+            opacity: 0.9;
+        }
+
+        /* Continue Journey Section */
+        .passphrase-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.1em;
+            text-align: center;
+            margin-bottom: 20px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .passphrase-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .passphrase-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Feature list */
+        .feature-list {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .feature-icon {
+            color: #3498db;
+            margin-right: 12px;
+            font-size: 1.1em;
+        }
+
+        /* Buttons */
+        .primary-button {
+            width: 100%;
+            padding: 16px 30px;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .primary-button::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .primary-button:hover::before {
+            left: 100%;
+        }
+
+        .primary-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.4);
+        }
+
+        .continue-button {
+            background: linear-gradient(45deg, #e67e22, #d35400);
+        }
+
+        .continue-button:hover {
+            box-shadow: 0 10px 30px rgba(230, 126, 34, 0.4);
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(26, 35, 50, 0.95), rgba(44, 62, 80, 0.95));
+            border: 2px solid #f0c674;
+            border-radius: 25px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            transform: scale(0.8) translateY(50px);
+            transition: transform 0.4s ease;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-title {
+            font-size: 1.9em;
+            color: #f0c674;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .modal-passphrase {
+            font-size: 2.4em;
+            color: #3498db;
+            font-weight: bold;
+            margin: 25px 0;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+            padding: 15px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .modal-description {
+            font-size: 1.1em;
+            margin-bottom: 25px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .reality-choice {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .reality-button {
+            padding: 18px 20px;
+            border: 2px solid;
+            border-radius: 12px;
+            background: transparent;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reality-button::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: currentColor;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .reality-button:hover::before {
+            opacity: 0.1;
+        }
+
+        .wutong-button {
+            border-color: #2ecc71;
+            color: #2ecc71;
+        }
+
+        .wutong-button:hover {
+            background: rgba(46, 204, 113, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(46, 204, 113, 0.3);
+        }
+
+        .wokemound-button {
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        .wokemound-button:hover {
+            background: rgba(231, 76, 60, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Floating particles */
+        .consciousness-particles {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.6), transparent);
+            border-radius: 50%;
+            animation: float 12s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(0px) rotate(0deg); 
+                opacity: 0.2; 
+            }
+            25% { 
+                transform: translateY(-30px) rotate(90deg); 
+                opacity: 0.6; 
+            }
+            50% { 
+                transform: translateY(-15px) rotate(180deg); 
+                opacity: 0.8; 
+            }
+            75% { 
+                transform: translateY(-25px) rotate(270deg); 
+                opacity: 0.4; 
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .reality-title { font-size: 2.2em; }
+            .hero-subtitle { font-size: 1.1em; }
+            .section-title { font-size: 1.6em; }
+            .section-description { font-size: 1em; }
+            .section-content { padding: 25px; }
+            .modal-content { padding: 25px; }
+            .modal-passphrase { font-size: 1.8em; letter-spacing: 2px; }
+            .reality-choice { grid-template-columns: 1fr; }
+        }
+
+        /* Intersection Observer animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating consciousness particles -->
+    <div class="consciousness-particles" id="particles"></div>
+
+    <!-- Hero Section with alternating backgrounds -->
+    <section class="hero-section">
+        <div class="background-layer bg-wutong active" id="bg1"></div>
+        <div class="background-layer bg-wokemound" id="bg2"></div>
+        <div class="hero-overlay"></div>
+        
+        <div class="hero-content">
+            <h1 class="reality-title wutong-title active" id="wutongTitle">WuTong Mountain</h1>
+            <h1 class="reality-title wokemound-title" id="wokemoundTitle">WokeMound</h1>
+            <p class="hero-subtitle">Where consciousness evolves through choice...</p>
+        </div>
+        
+        <div class="scroll-indicator">
+            →“ Begin Your Journey →“
+        </div>
+    </section>
+
+    <!-- Combined Continue & Begin Section -->
+    <section class="dual-section wutong-bg" id="mainSection">
+        <div class="dual-content">
+            <!-- Continue Journey -->
+            <div class="section-content fade-in">
+                <h2 class="section-title">Continue Your Journey</h2>
+                <p class="section-description">
+                    Already have a consciousness evolution passphrase? Enter it to continue:
+                </p>
+                
+                <input type="text" 
+                       class="passphrase-input" 
+                       id="passphraseInput" 
+                       placeholder="Enter your passphrase"
+                       maxlength="50">
+                
+                <button class="primary-button continue-button" onclick="continueJourney()">
+                    Continue Evolution
+                </button>
+            </div>
+
+            <!-- Begin Evolution -->
+            <div class="section-content fade-in">
+                <h2 class="section-title">Begin Evolution</h2>
+                <p class="section-description">
+                    Start your consciousness journey on utopian WuTong Mountain or visit the horror of WokeMound - the choice is yours.
+                </p>
+                
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">♦</span>
+                        Dual reality experience
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">♦</span>
+                        AI-powered storytelling
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">♦</span>
+                        Community choice creation
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">♦</span>
+                        Dream sharing with others
+                    </li>
+                </ul>
+                
+                <button class="primary-button" onclick="beginNewJourney()">
+                    Start Your Journey
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Welcome Modal for New Players -->
+    <div class="modal-overlay" id="welcomeModal">
+        <div class="modal-content">
+            <h2 class="modal-title">🏔️ WokeMound<br>
+                    <small>(Horror Mystery)</small>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome Back Modal for Returning Players -->
+    <div class="modal-overlay" id="welcomeBackModal">
+        <div class="modal-content">
+            <h2 class="modal-title">🌟 Welcome Back!</h2>
+            <div id="welcomeBackContent">
+                <!-- Dynamic content filled by JavaScript -->
+            </div>
+            <button class="primary-button" onclick="resumeJourney()" style="margin-top: 25px;">
+                Resume Journey
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentPlayer = null;
+        let newPlayerPassphrase = null;
+        let backgroundIndex = 0;
+        let titleIndex = 0;
+
+        // Railway Backend URL - Update this if your Railway URL changes
+        const BACKEND_URL = 'https://wutong-mountain-game-production.up.railway.app';
+
+        // Initialize the experience
+        function init() {
+            createParticles();
+            startBackgroundRotation();
+            setupScrollAnimations();
+            
+            // Ensure page starts at top
+            window.scrollTo(0, 0);
+            
+            // Don't auto-focus input to prevent automatic scrolling
+            // Users can click on it when they're ready
+        }
+
+        // Create floating consciousness particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.width = (Math.random() * 6 + 2) + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.animationDelay = Math.random() * 12 + 's';
+                particle.style.animationDuration = (Math.random() * 8 + 8) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // Alternating background and title animation
+        function startBackgroundRotation() {
+            const backgrounds = ['bg1', 'bg2'];
+            const titles = ['wutongTitle', 'wokemoundTitle'];
+            
+            setInterval(() => {
+                // Fade out current background and title
+                document.getElementById(backgrounds[backgroundIndex]).classList.remove('active');
+                document.getElementById(titles[titleIndex]).classList.remove('active');
+                
+                // Switch to next background and title
+                backgroundIndex = (backgroundIndex + 1) % backgrounds.length;
+                titleIndex = (titleIndex + 1) % titles.length;
+                
+                // Fade in new background and title
+                document.getElementById(backgrounds[backgroundIndex]).classList.add('active');
+                document.getElementById(titles[titleIndex]).classList.add('active');
+            }, 12000); // 12 second intervals
+        }
+
+        // Scroll-based animations
+        function setupScrollAnimations() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -100px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.fade-in').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        // Enhanced passphrase generation (space-separated, no dashes)
+        function generatePassphrase() {
+            const adjectives = [
+                'quiet', 'silver', 'golden', 'crimson', 'azure', 'violet', 'emerald',
+                'distant', 'gentle', 'wise', 'ancient', 'radiant', 'serene', 'mystic',
+                'flowing', 'dancing', 'dreaming', 'luminous', 'peaceful', 'endless',
+                'sacred', 'eternal', 'cosmic', 'stellar', 'celestial', 'infinite'
+            ];
+
+            const nouns = [
+                'moon', 'star', 'wind', 'river', 'mountain', 'ocean', 'forest',
+                'flame', 'shadow', 'light', 'crystal', 'harmony', 'spirit', 'dawn',
+                'storm', 'meadow', 'garden', 'temple', 'bridge', 'pathway',
+                'phoenix', 'dragon', 'lotus', 'sage', 'oracle', 'wanderer'
+            ];
+
+            const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+            const noun = nouns[Math.floor(Math.random() * nouns.length)];
+            
+            return `${adjective} ${noun}`.toUpperCase();
+        }
+
+        // Convert display passphrase to API format
+        function passphraseToApi(passphrase) {
+            return passphrase.toLowerCase().replace(/\s+/g, '-');
+        }
+
+        // Convert API passphrase to display format
+        function passphraseToDisplay(passphrase) {
+    if (!passphrase || typeof passphrase !== 'string') {
+        return 'anonymous-seeker';
+    }
+    return passphrase.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+        // Begin new consciousness journey
+        async function beginNewJourney() {
+            const button = event.target;
+            const originalText = button.textContent;
+            button.innerHTML = '<span class="loading"></span> Creating journey...';
+            button.disabled = true;
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/player/new`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                console.log('New consciousness journey created:', data);
+
+                if (data.success) {
+                    newPlayerPassphrase = data.passphrase;
+                    const displayPassphrase = passphraseToDisplay(data.passphrase);
+                    
+                    document.getElementById('modalPassphrase').textContent = displayPassphrase;
+                    showModal('welcomeModal');
+                } else {
+                    alert('Failed to create consciousness journey: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error creating journey:', error);
+                alert('Error creating consciousness journey. Please try again.');
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+
+        // Continue existing journey
+        async function continueJourney() {
+            const input = document.getElementById('passphraseInput');
+            const passphrase = input.value.trim();
+            
+            if (!passphrase) {
+                alert('Please enter your consciousness evolution passphrase');
+                return;
+            }
+
+            const button = event.target;
+            const originalText = button.textContent;
+            button.innerHTML = '<span class="loading"></span> Loading journey...';
+            button.disabled = true;
+
+            try {
+                const apiPassphrase = passphraseToApi(passphrase);
+                const response = await fetch(`${BACKEND_URL}/api/player/${apiPassphrase}`);
+                const data = await response.json();
+                console.log('Consciousness journey loaded:', data);
+
+                if (data.success) {
+                    currentPlayer = data.player;
+                    showWelcomeBack(data);
+                } else {
+                    alert('Consciousness journey not found. Please check your passphrase or start a new journey.');
+                }
+            } catch (error) {
+                console.error('Error loading journey:', error);
+                alert('Error loading consciousness journey. Please try again.');
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+
+        // Start in chosen reality (new player)
+        async function startInReality(reality) {
+            console.log(`Starting new journey in ${reality} with passphrase: ${newPlayerPassphrase}`);
+            hideModal('welcomeModal');
+            
+            // Redirect to game interface with passphrase and reality
+            window.location.href = `/game.html?passphrase=${encodeURIComponent(newPlayerPassphrase)}&reality=${reality}`;
+        }
+
+        // Resume journey (returning player - no reality choice needed)
+        async function resumeJourney() {
+            console.log(`Resuming journey for player:`, currentPlayer);
+            hideModal('welcomeBackModal');
+            
+            const reality = currentPlayer.current_reality;
+            
+            // Redirect to game interface with current player data
+            window.location.href = `/game.html?passphrase=${encodeURIComponent(currentPlayer.passphrase)}&reality=${reality}`;
+        }
+
+        // Show welcome back modal
+        function showWelcomeBack(data) {
+            const content = document.getElementById('welcomeBackContent');
+            const displayPassphrase = passphraseToDisplay(data.player.passphrase);
+            
+            content.innerHTML = `
+                <p><strong>Welcome back, ${displayPassphrase}!</strong></p>
+                <br>
+                <p>Your consciousness has grown to:</p>
+                <ul style="text-align: left; max-width: 300px; margin: 15px auto; line-height: 1.8;">
+                    <li><strong>Level:</strong> ${data.player.consciousness_level}</li>
+                    <li><strong>Spiral Points:</strong> ${data.player.spiral_points}</li>
+                    <li><strong>Current Reality:</strong> ${data.player.current_reality === 'wutong' ? 'WuTong Mountain' : 'WokeMound'}</li>
+                    <li><strong>Current Location:</strong> ${data.player.current_location}</li>
+                </ul>
+                <p style="margin-top: 15px; font-style: italic; opacity: 0.9;">Ready to continue your evolution?</p>
+            `;
+            
+            showModal('welcomeBackModal');
+        }
+
+        // Modal utilities
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Handle Enter key in passphrase input
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensure we start at the very top
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+            
+            document.getElementById('passphraseInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    continueJourney();
+                }
+            });
+
+            // Initialize the experience
+            init();
+        });
+
+        // Smooth scrolling for any internal links
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('scroll-indicator')) {
+                e.preventDefault();
+                document.getElementById('mainSection').scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+        });
+
+        // Close modals on background click
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                hideModal(e.target.id);
+            }
+        });
+
+        // Handle escape key to close modals
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.show').forEach(modal => {
+                    hideModal(modal.id);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+
