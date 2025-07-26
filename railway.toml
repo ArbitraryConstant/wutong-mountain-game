@@ -1,13 +1,13 @@
-﻿[build]
-builder = "NIXPACKS"
+[build]
+builder = "nixpacks"
+buildCommand = "npm install && npx prisma generate && npm run build"
 
 [deploy]
+startCommand = "npm start"
 healthcheckPath = "/health"
-healthcheckTimeout = 300
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10
+healthcheckTimeout = 100
+restartPolicyType = "never"
 
-[[services]]
-name = "wutong-mountain-backend"
-source = "."
-port = 3000
+[env]
+PORT = "0.0.0.0:$PORT"
+NODE_ENV = "production"

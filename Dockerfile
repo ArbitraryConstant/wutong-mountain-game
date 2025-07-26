@@ -1,28 +1,23 @@
-﻿FROM node:18-alpine
+# Use official Node.js image
+FROM node:18-alpine
 
-# Create app directory
+# Set working directory
 WORKDIR /app
-
-# Install system dependencies
-RUN apk add --no-cache \
-    nodejs \
-    npm
 
 # Copy package files
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --omit=dev
+RUN npm install
 
-# Bundle app source
+# Copy entire project
 COPY . .
 
-# Expose the port the app runs on
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Expose port
 EXPOSE 3000
 
-# Add a health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
-
-# Command to run the application
-CMD ["node", "src/server.js"]
+# Start command
+CMD ["npm", "start"]

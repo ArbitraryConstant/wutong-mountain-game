@@ -1,52 +1,74 @@
-﻿import express from 'express';
+// src/server.js
+import express from 'express';
 import cors from 'cors';
+import prisma from './database/prisma.js';
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Logging middleware
-app.use((req, res, next) => {
-    console.log([]  );
-    next();
-});
-
-// Health check endpoint
+// Health check route
 app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: 'healthy',
-        message: 'WuTong Mountain game backend is running',
-        timestamp: new Date().toISOString(),
-        version: '2.0.0',
-        environment: process.env.NODE_ENV || 'development'
-    });
+  res.json({ 
+    status: 'OK', 
+    message: 'WuTong Mountain Game Server is running',
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Default route
-app.get('/', (req, res) => {
-    res.json({
-        message: 'Welcome to WuTong Mountain Consciousness Evolution Game',
-        status: 'active'
+// Player Creation Route
+app.post('/players', async (req, res) => {
+  try {
+    const { passphrase } = req.body;
+    
+    // Check if passphrase already exists
+    const existingPlayer = await prisma.findPlayerByPassphrase(passphrase);
+    if (existingPlayer) {
+      return res.status(400).json({ 
+        error: 'Passphrase already in use',
+        message: 'Each consciousness journey requires a unique key'
+      });
+    }
+
+    // Create new player progression
+    const newPlayer = await prisma.createPlayerProgression({
+      passphrase,
+      currentReality: 'WUTONG',
+      spiralPoints: 0,
+      consciousnessLevel: 1
     });
+
+    res.status(201).json({
+      message: 'Consciousness evolution journey initiated',
+      player: {
+        id: newPlayer.id,
+        passphrase: newPlayer.passphrase,
+        currentReality: newPlayer.currentReality,
+        spiralPoints: newPlayer.spiralPoints,
+        consciousnessLevel: newPlayer.consciousnessLevel
+      }
+    });
+  } catch (error) {
+    console.error('Player creation error:', error);
+    res.status(500).json({ 
+      error: 'Consciousness transfer disrupted', 
+      message: 'The membrane between realities is unstable' 
+    });
+  }
 });
 
-// Port configuration
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
-
-// Start server
-const server = app.listen(PORT, '0.0.0.0', function() {
-    console.log('Server running on port ' + PORT);
+// Start the server
+app.listen(PORT, () => {
+  console.log(`?? WuTong Mountain Game Server running on port ${PORT}`);
+  console.log(`?? Consciousness evolution is now possible...`);
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-    console.log('SIGTERM signal received: closing HTTP server');
-    server.close(() => {
-        console.log('HTTP server closed');
-        process.exit(0);
-    });
+process.on('SIGINT', async () => {
+  await prisma.$disconnect();
+  console.log('Database connection closed.');
+  process.exit(0);
 });
-
-export default app;
