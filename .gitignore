@@ -1,0 +1,35 @@
+# Environment Variables
+.env
+.env.local
+.env.*.local
+*.env.txt
+**/*.env
+
+# Sensitive Information
+**/*.secret
+**/*secret*
+**/api_keys*
+**/credentials*
+**/*.key
+
+# Logs and Temporary Files
+logs/
+*.log
+*.tmp
+
+# Dependency Directories
+node_modules/
+
+# Build Output
+dist/
+build/
+
+# IDE Specific Files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets and Credentials
+**/secrets/
+**/*.pem
