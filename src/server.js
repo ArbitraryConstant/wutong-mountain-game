@@ -1,74 +1,155 @@
-// src/server.js
 import express from 'express';
 import cors from 'cors';
-import prisma from './database/prisma.js';
+import helmet from 'helmet';
+import compression from 'compression';
+import morgan from 'morgan';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+// Import routes
+import healthRoutes from './api/routes/healthRoutes.js';
+import playerRoutes from './api/routes/playerRoutes.js';
+import realityRoutes from './api/routes/realityRoutes.js';
+import storyRoutes from './api/routes/storyRoutes.js';
+import narrativeRoutes from './api/routes/narrativeRoutes.js';
+
+// Import services and utilities
+import SystemOrchestrator from './config/systemOrchestrator.js';
+import ConsciousnessLogger from './utils/logger.js';
+import ErrorHandler from './utils/errorHandler.js';
+
+// Import the Prisma client
+import DatabaseConnection from './database/connections.js';
+
+// Create Express application
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// Determine current directory (for ES Module compatibility)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Health check route
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'WuTong Mountain Game Server is running',
-    timestamp: new Date().toISOString()
-  });
-});
+// Middleware Configuration
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-// Player Creation Route
-app.post('/players', async (req, res) => {
-  try {
-    const { passphrase } = req.body;
-    
-    // Check if passphrase already exists
-    const existingPlayer = await prisma.findPlayerByPassphrase(passphrase);
-    if (existingPlayer) {
-      return res.status(400).json({ 
-        error: 'Passphrase already in use',
-        message: 'Each consciousness journey requires a unique key'
-      });
+// Security and Performance Middleware
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https:"]
+        }
     }
+}));
+app.use(compression());
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true }));
 
-    // Create new player progression
-    const newPlayer = await prisma.createPlayerProgression({
-      passphrase,
-      currentReality: 'WUTONG',
-      spiralPoints: 0,
-      consciousnessLevel: 1
-    });
+// Logging and Performance Tracking Middleware
+app.use(morgan('combined'));
 
-    res.status(201).json({
-      message: 'Consciousness evolution journey initiated',
-      player: {
-        id: newPlayer.id,
-        passphrase: newPlayer.passphrase,
-        currentReality: newPlayer.currentReality,
-        spiralPoints: newPlayer.spiralPoints,
-        consciousnessLevel: newPlayer.consciousnessLevel
-      }
-    });
-  } catch (error) {
-    console.error('Player creation error:', error);
-    res.status(500).json({ 
-      error: 'Consciousness transfer disrupted', 
-      message: 'The membrane between realities is unstable' 
-    });
-  }
-});
+// Server Startup Function
+async function startServer() {
+    try {
+        // Initialize Prisma client
+        await DatabaseConnection.connect();
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`?? WuTong Mountain Game Server running on port ${PORT}`);
-  console.log(`?? Consciousness evolution is now possible...`);
-});
+        // Initialize system components with more detailed logging
+        const systemHealth = await SystemOrchestrator.initialize();
 
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  await prisma.$disconnect();
-  console.log('Database connection closed.');
-  process.exit(0);
-});
+        // Prepare log message with safe value retrieval
+        const databaseStatus = systemHealth.database?.status || 'Unknown';
+        const initializationTime = systemHealth.database?.initializationTime || 'N/A';
+        const averageLevel = systemHealth.consciousness?.evolutionState?.averageConsciousnessLevel || 'N/A';
+        const averageSpiralPoints = systemHealth.consciousness?.evolutionState?.averageSpiralPoints || 'N/A';
+
+        // Log detailed system initialization
+        const logMessage = '?? WuTong Mountain Consciousness Evolution Server Initialized ??\n\n' +
+            'System Health Overview:\n' +
+            '- Database Status: ' + databaseStatus + '\n' +
+            '- Connection Time: ' + initializationTime + 'ms\n\n' +
+            'Consciousness Metrics:\n' +
+            '- Average Level: ' + averageLevel + '\n' +
+            '- Average Spiral Points: ' + averageSpiralPoints;
+
+        ConsciousnessLogger.log(logMessage, {
+            level: 'EMERGENCE',
+            category: 'system'
+        });
+
+        // Route Configuration
+        app.use('/health', healthRoutes);
+        app.use('/api/player', playerRoutes);
+        app.use('/api/reality', realityRoutes);
+        app.use('/api/story', storyRoutes);
+        app.use('/api/narrative', narrativeRoutes);
+
+        // Static File Serving
+        app.use(express.static(path.join(__dirname, '../public')));
+
+        // Catch-all route for SPA
+        app.get('*', (req, res) => {
+            res.sendFile(path.join(__dirname, '../public/index.html'));
+        });
+
+        // Global Error Handling Middleware
+        app.use(ErrorHandler.createExpressErrorMiddleware());
+
+        // Server Configuration
+        const PORT = process.env.PORT || 3000;
+        const HOST = process.env.HOST || '0.0.0.0';
+
+        // Start the server
+        const server = app.listen(PORT, HOST, () => {
+            const serverLogMessage = '?? WuTong Mountain Consciousness Evolution Server Running ??\n\n' +
+                '?? Server Details:\n' +
+                '- Host: ' + HOST + '\n' +
+                '- Port: ' + PORT + '\n' +
+                '- Environment: ' + (process.env.NODE_ENV || 'development') + '\n\n' +
+                '?? Available Routes:\n' +
+                '- Health Check: /health\n' +
+                '- Player Management: /api/player\n' +
+                '- Reality Interactions: /api/reality\n' +
+                '- Story Generation: /api/story\n' +
+                '- Narrative Exploration: /api/narrative\n\n' +
+                '?? Consciousness Evolution Activated!';
+
+            ConsciousnessLogger.log(serverLogMessage, {
+                level: 'EMERGENCE',
+                category: 'system'
+            });
+        });
+
+        // Graceful Shutdown Handling
+        process.on('SIGTERM', () => {
+            ConsciousnessLogger.log('Graceful shutdown initiated', {
+                level: 'TRANSFORMATION',
+                category: 'system'
+            });
+            server.close(() => {
+                SystemOrchestrator.shutdown();
+                process.exit(0);
+            });
+        });
+
+        return server;
+    } catch (error) {
+        ConsciousnessLogger.log('Server startup failed', {
+            level: 'CRITICAL',
+            category: 'error',
+            details: error
+        });
+        ErrorHandler.logError(error);
+        process.exit(1);
+    }
+}
+
+// Initiate Server Startup
+startServer().catch(console.error);
+
+export default app;

@@ -1,274 +1,200 @@
-﻿// WuTong Mountain Claude API Service
-// src/services/claudeAPI.js
+﻿import fetch from 'node-fetch';
+import { v4 as uuidv4 } from 'uuid';
+import rateLimit from 'express-rate-limit';
+import gameConfig from '../config/gameConfig.js';
 
-import { Anthropic } from '@anthropic-ai/sdk';
-
-class WuTongClaudeAPI {
-    constructor(apiKey) {
-        if (!apiKey) {
-            console.warn('⚠️ Claude API key not provided - using fallback responses');
-            this.anthropic = null;
-        } else {
-            this.anthropic = new Anthropic({
-                apiKey: apiKey
-            });
-        }
+class ClaudeAIService {
+    constructor() {
+        this.apiKey = process.env.CLAUDE_API_KEY;
+        this.baseURL = 'https://api.anthropic.com/v1/messages';
         
-        this.rateLimiter = {
-            requests: [],
-            maxPerMinute: 50,
-            maxPerHour: 1000
+        // Configure rate limiting
+        this.rateLimiter = rateLimit({
+            windowMs: 60 * 1000, // 1 minute
+            max: 10, // limit each IP to 10 requests per windowMs
+            message: 'Too many requests to Claude AI, please try again later'
+        });
+
+        // Consciousness evolution prompt engineering templates
+        this.promptTemplates = {
+            storyGeneration: {
+                wutong: [
+                    "Generate a narrative that explores collective healing and technological harmony.",
+                    "Craft a story segment revealing the interconnectedness of consciousness.",
+                    "Create a scenario that transforms systemic trauma through empathy and understanding."
+                ],
+                wokemound: [
+                    "Develop a narrative that exposes the psychological mechanisms of technological oppression.",
+                    "Craft a story revealing resistance through subtle, non-violent means.",
+                    "Generate a scenario that demonstrates human resilience against systemic dehumanization."
+                ]
+            },
+            choiceProcessing: [
+                "Analyze the deeper spiritual and psychological implications of this choice.",
+                "Explore the ripple effects of individual action on collective consciousness.",
+                "Reveal the hidden transformative potential within this moment of decision."
+            ]
         };
     }
 
-    // Check rate limits
-    checkRateLimit() {
-        const now = Date.now();
-        const oneMinuteAgo = now - 60000;
-        const oneHourAgo = now - 3600000;
+    async generateStory(context) {
+        const { 
+            reality, 
+            playerLevel, 
+            previousChoices = [], 
+            playerStats 
+        } = context;
 
-        // Clean old requests
-        this.rateLimiter.requests = this.rateLimiter.requests.filter(
-            time => time > oneHourAgo
+        const prompt = this._constructAdvancedPrompt(
+            reality, 
+            playerLevel, 
+            previousChoices, 
+            playerStats
         );
 
-        const recentRequests = this.rateLimiter.requests.filter(
-            time => time > oneMinuteAgo
-        );
-
-        return {
-            canMakeRequest: recentRequests.length < this.rateLimiter.maxPerMinute &&
-                           this.rateLimiter.requests.length < this.rateLimiter.maxPerHour,
-            minuteCount: recentRequests.length,
-            hourCount: this.rateLimiter.requests.length
-        };
-    }
-
-    // Generate story content with consciousness context
-    async generateStoryContent(gameContext) {
-        const rateCheck = this.checkRateLimit();
-        if (!rateCheck.canMakeRequest) {
-            console.warn('Rate limit exceeded, using fallback');
-            return this.getFallbackStory(gameContext.reality);
-        }
-
-        if (!this.anthropic) {
-            return this.getFallbackStory(gameContext.reality);
-        }
-
         try {
-            this.rateLimiter.requests.push(Date.now());
-
-            const prompt = this.buildStoryPrompt(gameContext);
-            
-            const response = await this.anthropic.messages.create({
-                model: 'claude-3-sonnet-20240229',
-                max_tokens: 1200,
-                temperature: 0.7,
-                messages: [{
-                    role: 'user',
-                    content: prompt
-                }]
-            });
-
-            return this.parseStoryResponse(response.content[0].text);
+            const response = await this._callClaudeAPI(prompt);
+            return this._processStoryResponse(response);
         } catch (error) {
-            console.error('Claude API error:', error);
-            return this.getFallbackStory(gameContext.reality);
+            console.error('Claude AI Story Generation Error:', error);
+            return this._generateFallbackStory(reality, playerLevel);
         }
     }
 
-    // Process player choice with consciousness evaluation
-    async processChoice(playerData, choice, context) {
-        const rateCheck = this.checkRateLimit();
-        if (!rateCheck.canMakeRequest || !this.anthropic) {
-            return this.getFallbackChoiceResult(choice);
-        }
-
-        try {
-            this.rateLimiter.requests.push(Date.now());
-
-            const prompt = this.buildChoicePrompt(playerData, choice, context);
-            
-            const response = await this.anthropic.messages.create({
-                model: 'claude-3-sonnet-20240229',
-                max_tokens: 800,
-                temperature: 0.6,
-                messages: [{
-                    role: 'user',
-                    content: prompt
-                }]
-            });
-
-            return this.parseChoiceResponse(response.content[0].text);
-        } catch (error) {
-            console.error('Claude choice processing error:', error);
-            return this.getFallbackChoiceResult(choice);
-        }
-    }
-
-    // Build comprehensive story prompt
-    buildStoryPrompt(gameContext) {
-        const { player, reality, location, recentActions, npcs } = gameContext;
+    _constructAdvancedPrompt(reality, playerLevel, previousChoices, playerStats) {
+        const randomTemplate = this._getRandomTemplate(reality);
         
-        return `Generate content for "Escape from WuTong Mountain" - a consciousness evolution game.
+        return `
+CONSCIOUSNESS EVOLUTION NARRATIVE GENERATION
 
-GAME STATE:
-Reality: ${reality === 'wutong' ? 'WuTong Mountain (Utopian 2100)' : 'WokeMound (Dystopian Horror)'}
-Location: ${location || 'unknown-area'}
-Player Level: ${this.calculateLevel(player.spiral_points)}
+Game: Escape from WuTong Mountain
+Reality: ${reality}
+Player Level: ${playerLevel}
 
-PLAYER STATS: ${JSON.stringify(player.stats || {})}
-SPIRAL POINTS: ${player.spiral_points || 0}
+PHILOSOPHICAL PRINCIPLES:
+- Transformation through understanding
+- Non-violent resistance
+- Collective healing
+- Systemic empathy
 
-CONSCIOUSNESS PRINCIPLES:
-1. Growth through service to others
-2. ${reality === 'wokemound' ? 'Horror balanced with hope' : 'Healing through community'}
-3. Choices advance spiritual development
-4. Empathy over individual achievement
+CONTEXT:
+${randomTemplate}
 
-Generate a story segment (200-250 words) with current situation and 3-4 choices.
+Player Statistics:
+${JSON.stringify(playerStats)}
 
-Format as JSON:
+Previous Narrative Choices:
+${JSON.stringify(previousChoices)}
+
+GENERATION INSTRUCTIONS:
+1. Create a 250-word narrative segment
+2. Embed 3-4 meaningful choices
+3. Each choice should have:
+   - Philosophical implication
+   - Potential for consciousness growth
+   - Subtle systemic challenge
+
+OUTPUT FORMAT (STRICT JSON):
 {
-  "scene": "vivid description",
-  "atmosphere": "emotional tone",
+  "location": "Evocative scene name",
+  "text": "Narrative segment exploring consciousness",
   "choices": [
     {
-      "text": "choice description",
-      "mechanics": "INSIGHT + PRESENCE",
-      "service_opportunity": "how this helps others"
+      "text": "Choice description",
+      "type": "service/resistance/learning",
+      "philosophicalImplication": "Deeper meaning"
     }
   ]
-}`;
+}
+`;
     }
 
-    // Parse Claude's story response
-    parseStoryResponse(response) {
-        try {
-            const cleaned = response.replace(/```json\n?|\n?```/g, '').trim();
-            const parsed = JSON.parse(cleaned);
-            
-            return {
-                scene: parsed.scene || "The path forward beckons with possibility...",
-                atmosphere: parsed.atmosphere || "contemplative",
-                choices: parsed.choices || this.getDefaultChoices(),
-                npc_updates: parsed.npc_updates || []
-            };
-        } catch (error) {
-            console.error('Failed to parse story response:', error);
-            return this.getFallbackStory();
+    async _callClaudeAPI(prompt) {
+        if (!this.apiKey) {
+            throw new Error('Claude API Key not configured');
         }
-    }
 
-    // Build choice processing prompt
-    buildChoicePrompt(playerData, choice, context) {
-        return `Process this consciousness evolution choice:
-
-CHOICE: "${choice.text}"
-MECHANICS: ${choice.mechanics}
-REALITY: ${context.reality}
-PLAYER LEVEL: ${this.calculateLevel(playerData.spiral_points)}
-
-Generate outcome focusing on consciousness growth and service to others.
-
-Format as JSON:
-{
-  "outcome": "what happens (150 words)",
-  "consciousness_growth": "wisdom gained",
-  "service_impact": "how this helped others",
-  "impact": "minor/moderate/major/profound"
-}`;
-    }
-
-    // Parse choice response
-    parseChoiceResponse(response) {
-        try {
-            const cleaned = response.replace(/```json\n?|\n?```/g, '').trim();
-            return JSON.parse(cleaned);
-        } catch (error) {
-            console.error('Failed to parse choice response:', error);
-            return this.getFallbackChoiceResult();
-        }
-    }
-
-    // Helper methods
-    calculateLevel(spiralPoints) {
-        if (spiralPoints >= 1000) return 7;
-        if (spiralPoints >= 750) return 6;
-        if (spiralPoints >= 500) return 5;
-        if (spiralPoints >= 300) return 4;
-        if (spiralPoints >= 150) return 3;
-        if (spiralPoints >= 50) return 2;
-        return 1;
-    }
-
-    getFallbackStory(reality = 'wutong') {
-        if (reality === 'wutong') {
-            return {
-                scene: "You stand in the Harmony Gardens where crystalline towers catch the afternoon light. Community members gather in peaceful circles, sharing wisdom and supporting each other's growth.",
-                atmosphere: "peaceful and nurturing",
-                choices: [
-                    {
-                        text: "Join a wisdom circle to learn from others",
-                        mechanics: "PRESENCE + HARMONY",
-                        service_opportunity: "Support community learning"
-                    },
-                    {
-                        text: "Offer to help someone struggling with meditation",
-                        mechanics: "INSIGHT + PRESENCE",
-                        service_opportunity: "Guide another's practice"
-                    },
-                    {
-                        text: "Share your own experiences with the group",
-                        mechanics: "HARMONY + RESOLVE",
-                        service_opportunity: "Inspire others through vulnerability"
-                    }
-                ]
-            };
-        } else {
-            return {
-                scene: "The bio-luminescent corridors of WokeMound pulse with unnatural light. You hear distant screams from the transformation chambers, but also whispers of resistance and hope.",
-                atmosphere: "tense but determined",
-                choices: [
-                    {
-                        text: "Investigate the source of the screams to help",
-                        mechanics: "RESOLVE + VIGOR",
-                        service_opportunity: "Rescue others from forced change"
-                    },
-                    {
-                        text: "Follow the whispers to find the resistance",
-                        mechanics: "INSIGHT + PRESENCE",
-                        service_opportunity: "Join collaborative efforts"
-                    },
-                    {
-                        text: "Create a diversion to help others escape",
-                        mechanics: "VIGOR + HARMONY",
-                        service_opportunity: "Enable others' freedom"
-                    }
-                ]
-            };
-        }
-    }
-
-    getFallbackChoiceResult(choice) {
-        return {
-            outcome: `Your choice to "${choice.text}" ripples through the consciousness field, creating opportunities for growth and service that extend beyond what you can immediately see.`,
-            consciousness_growth: "You gain deeper understanding of how individual actions serve collective evolution.",
-            service_impact: "Your decision creates positive change in ways both seen and unseen.",
-            impact: "moderate"
+        const requestBody = {
+            model: "claude-3-haiku-20240307",
+            max_tokens: 1000,
+            messages: [
+                {
+                    role: "user",
+                    content: prompt
+                }
+            ]
         };
+
+        try {
+            const response = await fetch(this.baseURL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': this.apiKey,
+                    'Anthropic-Version': '2023-06-01'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Claude API response error: ${response.status}`);
+            }
+
+            const responseData = await response.json();
+            return responseData.content[0].text;
+        } catch (error) {
+            console.error('Claude API Call Error:', error);
+            throw error;
+        }
     }
 
-    getDefaultChoices() {
-        return [
-            {
-                text: "Seek deeper understanding of the situation",
-                mechanics: "INSIGHT + PRESENCE",
-                service_opportunity: "Learn how to better help others"
+    _processStoryResponse(responseText) {
+        try {
+            // Advanced parsing with multiple fallback strategies
+            const cleanedText = responseText
+                .replace(/```json\n?|\n?```/g, '')
+                .trim();
+            
+            return JSON.parse(cleanedText);
+        } catch (parseError) {
+            console.warn('Claude response parsing failed. Using fallback.');
+            return this._generateFallbackStory();
+        }
+    }
+
+    _generateFallbackStory(reality = 'wutong', playerLevel = 1) {
+        const baseStories = {
+            wutong: {
+                location: "Healing Sanctuary",
+                text: "In the tranquil Healing Sanctuary, consciousness workers gather to process collective trauma...",
+                choices: [
+                    {
+                        text: "Offer empathetic listening",
+                        type: "service",
+                        philosophicalImplication: "Healing through presence"
+                    }
+                ]
+            },
+            wokemound: {
+                location: "Resistance Network",
+                text: "Amidst the oppressive technological landscape, whispers of resistance emerge...",
+                choices: [
+                    {
+                        text: "Investigate subtle resistance methods",
+                        type: "resistance",
+                        philosophicalImplication: "Transformation through understanding"
+                    }
+                ]
             }
-        ];
+        };
+
+        return baseStories[reality] || baseStories.wutong;
+    }
+
+    _getRandomTemplate(reality) {
+        const templates = this.promptTemplates.storyGeneration[reality];
+        return templates[Math.floor(Math.random() * templates.length)];
     }
 }
 
-export default WuTongClaudeAPI;
+export default new ClaudeAIService();

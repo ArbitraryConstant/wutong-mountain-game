@@ -1,0 +1,48 @@
+// Prisma Schema for WuTong Mountain Game
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Player Progression Model
+model PlayerProgression {
+  id                   String    @id @default(uuid())
+  passphrase           String    @unique
+  currentReality       Reality   @default(WUTONG)
+  spiralPoints         Int       @default(0)
+  consciousnessLevel   Int       @default(1)
+  lastActive           DateTime  @default(now())
+  
+  // Dual Reality State Tracking
+  wokemoundStats       Json?
+  wutongStats          Json?
+  
+  // Narrative Progress
+  storySeeds           Json?
+  completedChallenges  Json?
+
+  @@index([passphrase, currentReality])
+}
+
+// Story Fragment Model
+model StoryFragment {
+  id                   String    @id @default(uuid())
+  reality              Reality
+  consciousnessLevel   Int
+  content              String
+  tags                 Json?
+  createdAt            DateTime  @default(now())
+
+  @@index([reality, consciousnessLevel])
+}
+
+// Enum for Reality Types
+enum Reality {
+  WOKEMOUND
+  WUTONG
+}

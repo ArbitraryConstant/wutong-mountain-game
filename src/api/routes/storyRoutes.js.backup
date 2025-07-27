@@ -98,7 +98,7 @@ router.post('/choice', async (req, res) => {
             result: {
                 statsChanged,
                 spiralPoints,
-                outcome: `Your choice to "${choice || 'default choice'}" creates subtle shifts in your consciousness.`
+                outcome: Your choice to "" creates subtle shifts in your consciousness.
             }
         });
 

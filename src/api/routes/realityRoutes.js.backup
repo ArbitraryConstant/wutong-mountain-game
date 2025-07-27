@@ -23,7 +23,7 @@ router.post('/switch', async (req, res) => {
         res.json({
             success: true,
             new_reality: target_reality,
-            message: `Consciousness transferred to ${target_reality}`,
+            message: Consciousness transferred to ,
             player: {
                 current_reality: target_reality,
                 current_location: 'arrival-point'
